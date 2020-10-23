@@ -1,0 +1,7 @@
+/.idea
+/.vscode
+*.log
+/vendor
+/runtime
+thinkphp
+/logs
