@@ -60,7 +60,7 @@ class Main
     {
         $this->config = array_merge($this->config, $config);
         if ($this->useRedis) {
-            $this->redis_utils = new RedisUtils();
+            $this->config['redis_utils'] = new RedisUtils();
         }
     }
 
@@ -121,13 +121,12 @@ class Main
 
         // 是否使用 redis
         if ($this->useRedis) {
-            $redis_utils = new RedisUtils();
             // redis hash 类型保存
             foreach ($secode as $k => $v) {
-                $redis_utils::hset(RedisEnum::CAPTCHA_FOLDER . $key . $id, (string)$k, (string)$v);
+                $this->redis_utils::hset(RedisEnum::CAPTCHA_FOLDER . $key . $id, (string)$k, (string)$v);
             }
             // 刷新过期时间
-            $redis_utils->RefreshExpireTime(RedisEnum::CAPTCHA_FOLDER . $key . $id, RedisEnum::CAPTCHA_LIFECYCLE);
+            $this->redis_utils->RefreshExpireTime(RedisEnum::CAPTCHA_FOLDER . $key . $id, RedisEnum::CAPTCHA_LIFECYCLE);
         } else {
             Session::set($key . $id, $secode, '');
         }

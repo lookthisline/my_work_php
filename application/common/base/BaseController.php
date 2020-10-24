@@ -49,6 +49,7 @@ class BaseController extends \think\Controller
 
     /**
      * 加载模块验证器类文件验证提交参数
+     * @access private
      * @return Bool|String
      */
     private static function checkActionParam()

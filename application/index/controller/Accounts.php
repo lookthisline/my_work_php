@@ -6,8 +6,6 @@ use think\Request;
 use think\facade\Config;
 use app\common\base\BaseController;
 use app\index\model\User as UserModel;
-use app\common\enum\Redis as RedisEnum;
-use think\facade\Log;
 
 class Accounts extends BaseController
 {
