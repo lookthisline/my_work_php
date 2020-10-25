@@ -19,7 +19,8 @@ class Accounts extends BaseValidate
         'name'         => 'require|chsDash|length:2,16',
         'position'     => 'require|chsDash|length:2,20',
         'email'        => 'require|email|max:254',
-        'captcha_code' => 'require|length:5|alphaNum|checkCode'
+        'captcha_code' => 'require|length:5|alphaNum|checkCode',
+        'captcha_id'   => 'require|max:32|alphaNum'
     ];
 
     protected $message = [
@@ -33,6 +34,9 @@ class Accounts extends BaseValidate
         'passwd.alphaDash'       => '密码只能由字母、数字、下划线 _ 、破折号 - 组成',
         'passwd.confirm'         => '两次密码输入不一致，请重新输入',
         'nickname.unique'        => '该用户名已被使用',
+        'captcha_id.require'     => '验证码参数缺失',
+        'captcha_id.max'         => '请填写正确的验证码参数',
+        'captcha_id.alphaNum'    => '请填写正确的验证码参数',
         'captcha_code.require'   => '请填写验证码',
         'captcha_code.alphaNum'  => '验证码只能为字母和数字',
         'captcha_code.length'    => '请输入正确的验证码',
@@ -65,7 +69,7 @@ class Accounts extends BaseValidate
      */
     public function sceneSignIn(): self
     {
-        return $this->only(['nickname', 'passwd', 'captcha_code'])
+        return $this->only(['nickname', 'passwd', 'captcha_id', 'captcha_code'])
             ->remove('nickname', 'unique')
             ->remove('passwd', 'confirm');
     }
