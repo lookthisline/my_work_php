@@ -4,6 +4,7 @@ namespace app\index\controller;
 
 use app\common\base\BaseController;
 use app\common\expand\Captcha\Main as CaptchaUtils;
+use think\Request;
 
 class Captcha extends BaseController
 {
@@ -19,5 +20,15 @@ class Captcha extends BaseController
             'picture'    => (new CaptchaUtils())->build($id),
             'captcha_id' => $id
         ]);
+    }
+
+    public function TestBbc()
+    {
+        var_dump( request()->path());
+        // return 2339;
+    }
+    public function TestBba()
+    {
+        return 239;
     }
 }

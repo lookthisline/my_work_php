@@ -1,20 +1,22 @@
 <?php
-// +----------------------------------------------------------------------
-// | ThinkPHP [ WE CAN DO IT JUST THINK ]
-// +----------------------------------------------------------------------
-// | Copyright (c) 2006~2018 http://thinkphp.cn All rights reserved.
-// +----------------------------------------------------------------------
-// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
-// +----------------------------------------------------------------------
-// | Author: liu21st <liu21st@gmail.com>
-// +----------------------------------------------------------------------
-
-// Route::get('think', function () {
-//     return 'hello,ThinkPHP5!';
-// });
-
-// Route::get('hello/:name', 'index/hello');
 
 return [
-
+    // 获取验证码
+    'captcha'        => ['index/captcha/getCaptcha', ['method' => 'get']],
+    // 注册
+    'signUp'         => ['index/accounts/signUp', ['method' => 'put|options']],
+    // 登录
+    'login'          => ['index/accounts/login', ['method' => 'post|options']],
+    // 用户列表
+    'list/user'      => ['index/accounts/list', ['method' => 'get|options']],
+    // 审核用户
+    'audit/user/:id' => ['index/accounts/audit', ['method' => 'put|options'], ['id' => '\d+']],
+    '[user]'         => [
+        // 用户详情
+        ':details_id' => ['index/accounts/details', ['method' => 'get|options'], ['details_id' => '\d+']],
+        // 修改用户
+        ':modify_id'  => ['index/accounts/modify', ['method' => 'put|options'], ['modify_id' => '\d+']],
+        // 删除用户
+        ':delete_id'  => ['index/accounts/delete', ['method' => 'delete|options'], ['delete_id' => '\d+']]
+    ]
 ];

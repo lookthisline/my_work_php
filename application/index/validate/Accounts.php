@@ -8,22 +8,24 @@ use app\common\expand\Captcha\Main as CaptchaUtils;
 class Accounts extends BaseValidate
 {
     protected $rule = [
-        'id'           => 'number',
+        'id'           => 'require|number',
         'data'         => 'array',
         'page'         => 'number',
-        'avatar'       => 'file|fileExt:png,jpg,jpeg,pjpeg,bmp|fileSize:30720',
-        'nickname'     => 'require|chsDash|length:2,16|unique:user',
-        'phone'        => 'require|mobile|virtualNumber',
-        'passwd'       => 'require|confirm:repasswd|alphaDash|length:6,16',
+        'avatar'       => 'require|file|fileExt:png,jpg,jpeg,pjpeg,bmp|fileSize:30720',
+        'nickname'     => 'chsDash|length:2,16|unique:user',
+        'phone'        => 'mobile|virtualNumber',
+        'passwd'       => 'confirm:repasswd|alphaDash|length:6,16',
         'repasswd'     => 'require|confirm:passwd',
-        'name'         => 'require|chsDash|length:2,16',
-        'position'     => 'require|chsDash|length:2,20',
-        'email'        => 'require|email|max:254',
+        'name'         => 'chsDash|length:2,16',
+        'position'     => 'chsDash|length:2,20',
+        'email'        => 'email|max:254',
         'captcha_code' => 'require|length:5|alphaNum|checkCode',
         'captcha_id'   => 'require|max:32|alphaNum'
     ];
 
     protected $message = [
+        'avatar.require'         => '请上传头像',
+        'id.require'             => '参数缺少',
         'id.number'              => '参数类型错误',
         'data.array'             => '参数类型错误',
         'page.number'            => '参数类型错误',
@@ -49,29 +51,44 @@ class Accounts extends BaseValidate
     ];
 
     protected $scene = [
-        'index'   => '',
-        // 注册
-        'signup'  => ['avatar', 'nickname', 'passwd', 'name', 'phone', 'position', 'email'],
+        // 审核账户
+        'audit'   => ['id'],
+        // 用户详情
+        'details' => ['id'],
+        // 删除用户
+        'delete'  => ['id'],
         // 修改用户
         'modify'  => ['nickname', 'name', 'phone', 'position', 'email'],
         // 用户列表
         'list'    => ['page'],
-        // 用户详情
-        'details' => ['id'],
-        // 删除用户
-        'delete'  => ['id']
     ];
 
     /**
-     * SignIn 验证场景重写
+     * 登录(login) 验证场景重写
      * @access public
      * @return Self
      */
-    public function sceneSignIn(): self
+    public function sceneLogin(): self
     {
         return $this->only(['nickname', 'passwd', 'captcha_id', 'captcha_code'])
             ->remove('nickname', 'unique')
             ->remove('passwd', 'confirm');
+    }
+
+    /**
+     * 注册(signUp) 验证场景重写
+     * @access public
+     * @return Self
+     */
+    public function sceneSignUp(): self
+    {
+        return $this->only(['avatar', 'nickname', 'passwd', 'name', 'phone', 'position', 'email'])
+            ->append('nickname', 'require')
+            ->append('name', 'require')
+            ->append('passwd', 'require')
+            ->append('phone', 'require')
+            ->append('position', 'require')
+            ->append('email', 'require');
     }
 
     /**

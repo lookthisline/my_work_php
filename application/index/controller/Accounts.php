@@ -14,9 +14,9 @@ class Accounts extends BaseController
      * @access public
      * @param Request $request
      * @return \think\response\Json
-     * @link /index/accounts/signIn
+     * @link /index/accounts/login
      */
-    public function signIn(Request $request)
+    public function login(Request $request)
     {
         $param_data = [
             'nickname' => $request->post('nickname/s'),
@@ -24,7 +24,7 @@ class Accounts extends BaseController
         ];
 
         $user_model = new UserModel();
-        $result = $user_model->SignIn($param_data);
+        $result = $user_model->Login($param_data);
 
         if ($result) {
             $result = $result->toArray();
@@ -49,18 +49,19 @@ class Accounts extends BaseController
     public function signUp(Request $request)
     {
         $param_data = [
-            'nickname'    => $request->post('nickname/s'),
-            'passwd'      => md5($request->post('passwd/s')),
-            'name'        => $request->post('name/s'),
-            'phone'       => $request->post('phone/d'),
-            'position'    => $request->post('position/s'),
-            'email'       => $request->post('email/s'),
+            'nickname'    => $request->put('nickname/s'),
+            'passwd'      => md5($request->put('passwd/s')),
+            'name'        => $request->put('name/s'),
+            'phone'       => $request->put('phone/d'),
+            'position'    => $request->put('position/s'),
+            'email'       => $request->put('email/s'),
             'create_time' => time()
         ];
 
         // 保存上传文件到指定路径
         $file = $request->file('avatar');
-        $info =  $file->move(Config::get('upload.upload_path'));
+        $info = $file->move(Config::get('upload.upload_path'));
+
         if ($info) {
             $param_data['avatar'] = (string)Config::get('upload.upload_path') . DIRECTORY_SEPARATOR . $info->getSaveName() . PHP_EOL;
         } else {
@@ -69,7 +70,8 @@ class Accounts extends BaseController
 
         // 创建用户，保存数据
         $user_model = new UserModel();
-        $result = $user_model->SignUp($param_data);
+        $result     = $user_model->SignUp($param_data);
+
         if (!$result) {
             return clientResponse(null, '注册失败，请稍后再试', false);
         }
@@ -80,11 +82,10 @@ class Accounts extends BaseController
     /**
      * 用户列表(分页，用户类型区分)
      * @access public
-     * @param Request $request
      * @return \think\response\Json
      * @link /index/accounts/list
      */
-    public function List(Request $request)
+    public function List()
     {
         // 判断当前用户权限
         if ($this->decidePrivilege(2)) {
@@ -93,7 +94,7 @@ class Accounts extends BaseController
         }
 
         $user_model = new UserModel();
-        $result = $user_model->getList();
+        $result     = $user_model->getList();
 
         return clientResponse($result);
     }
@@ -114,7 +115,7 @@ class Accounts extends BaseController
         }
 
         $user_model = new UserModel();
-        $result = $user_model->getUserDetails($request->post('id/d'));
+        $result     = $user_model->getUserDetails($request->get('id/d', 0));
 
         return clientResponse($result);
     }
@@ -135,19 +136,19 @@ class Accounts extends BaseController
         }
 
         $data = [
-            'id'       => $request->post('id/d', null),
-            'name'     => $request->post('name/s', null),
-            'nickname' => $request->post('nickname/s', null),
-            'phone'    => $request->post('phone/d', null),
-            'position' => $request->post('position/s', null),
-            'email'    => $request->post('email/s', null),
+            'id'       => $request->put('id/d', null),
+            'name'     => $request->put('name/s', null),
+            'nickname' => $request->put('nickname/s', null),
+            'phone'    => $request->put('phone/d', null),
+            'position' => $request->put('position/s', null),
+            'email'    => $request->put('email/s', null),
         ];
 
         // 过滤空值
         $data = array_filter($data);
 
         $user_model = new UserModel();
-        $result = $user_model->modifyUser($data);
+        $result     = $user_model->modifyUser($data);
 
         if (!$result) {
             return clientResponse(null, '修改用户失败', false);
@@ -171,9 +172,9 @@ class Accounts extends BaseController
         }
 
         $user_model = new UserModel();
-        $result = $user_model->auditUsers($request->post('id/d', 0));
+        $result     = $user_model->auditUsers($request->put('id/d', 0));
 
-        return $result ? clientResponse() : clientResponse(null, '操作失败，请检查参数稍后重试');
+        return $result ? clientResponse($result) : clientResponse(null, '操作失败，请检查参数稍后重试');
     }
 
     /**
@@ -192,8 +193,8 @@ class Accounts extends BaseController
         }
 
         $user_model = new UserModel();
-        $result = $user_model->deleteUser($request->post('id/d', 0));
+        $result     = $user_model->deleteUser($request->delete('id/d', 0));
 
-        return clientResponse($result);
+        return $result ? clientResponse($result) : clientResponse(null, '操作失败，请稍后再试');
     }
 }

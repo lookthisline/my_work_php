@@ -11,7 +11,7 @@ class User extends Model
     protected $pk = 'id';
 
     /**
-     * create_time 获取器
+     * 账户创建时间(create_time) 获取器
      * @access public
      * @param String $value
      * @return String
@@ -29,10 +29,14 @@ class User extends Model
     public function SignUp(array $param_data)
     {
         $result = false;
+
+        $this->startTrans();
         try {
             $result = $this->allowField(true)
                 ->insert($param_data, false, true);
+            $this->commit();
         } catch (PDOException $e) {
+            $this->rollback();
             Log::write($e->getMessage(), 'error');
         }
         return $result;
@@ -43,7 +47,7 @@ class User extends Model
      * @param Array $param_data
      * @return Array|Null|\PDOStatement|String|\think\Model
      */
-    public function SignIn(array $param_data)
+    public function Login(array $param_data)
     {
         return $this->allowField(true)
             ->field('id,account_status,nickname,user_level')
@@ -66,6 +70,7 @@ class User extends Model
             ->field('id,nickname,name,phone,position,email,account_status,create_time')
             ->order('create_time', 'desc')
             ->withAttr('account_status', function ($value) use ($account_status_arr) {
+                // 审核状态(account_status) 获取器
                 return $account_status_arr[in_array($value, [-1, 1]) ? $value : -1];
             })
             ->paginate(15);
@@ -96,15 +101,20 @@ class User extends Model
     public function modifyUser(array $param_data): bool
     {
         $result = false;
+
         // 不存在 id 不做任何改变
         if (!array_key_exists('id', $param_data)) {
             return true;
         }
+
+        $this->startTrans();
         try {
             $result = $this->allowField(['name', 'nickname', 'phone', 'position', 'email'])
                 ->data($param_data)
                 ->updateData([$this->pk => $param_data['id'], 'user_level' => 3]);
+            $this->commit();
         } catch (PDOException $e) {
+            $this->rollback();
             Log::write($e->getMessage(), 'error');
         }
         return $result;
@@ -118,6 +128,7 @@ class User extends Model
     public function auditUsers(int $id): bool
     {
         $result = $this->get($id);
+
         if ($result) {
             if ($result->account_status == 1) {
                 return true;
@@ -125,6 +136,7 @@ class User extends Model
             $result->account_status = 1;
             return $result->save();
         }
+
         return false;
     }
 
@@ -145,6 +157,7 @@ class User extends Model
                     'user_level' => 3
                 ]);
             });
+            $this->commit();
         } catch (\Exception $e) {
             $this->rollback();
             Log::write($e->getMessage(), 'error');

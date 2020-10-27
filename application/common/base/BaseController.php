@@ -3,11 +3,9 @@
 namespace app\common\base;
 
 use app\common\enum\Redis as RedisEnum;
-use think\facade\Request as FacadeRequest;
 use app\common\expand\JwtUtils;
 use app\common\expand\RedisUtils;
 use think\Db;
-use think\facade\Log;
 
 class BaseController extends \think\Controller
 {
@@ -29,8 +27,8 @@ class BaseController extends \think\Controller
         // 响应 OPTIONS 请求
         if (strtoupper(request()->method()) === "OPTIONS") {
             return clientResponse(null, 'success', true, 200, [
-                'Access-Control-Allow-Methods' => request()->header('access-control-request-method'),
-                'Access-Control-Allow-Headers' => request()->header('access-control-request-headers')
+                'Access-Control-Allow-Methods' => request()->header('access-control-request-method', ''),
+                'Access-Control-Allow-Headers' => request()->header('access-control-request-headers', '')
             ]);
         }
 
@@ -55,21 +53,22 @@ class BaseController extends \think\Controller
     private static function checkActionParam()
     {
         $validate_result   = true;
-        $client_param_data = FacadeRequest::param(true);
+        $client_param_data = request()->param(true);
         // 获取用户端在请求头携带的用户 token
-        self::$token = (string)FacadeRequest::header('Authorization', '');
+        self::$token = (string)request()->header('Authorization', '');
+        // url中携带的控制器名
         $controller_name = '';
-        if (preg_match("/./", FacadeRequest::controller())) {
-            $controller_array = @explode(".", FacadeRequest::controller());
+        if (preg_match("/./", request()->controller())) {
+            $controller_array = @explode(".", request()->controller());
             $controller_name  = ucfirst(end($controller_array));
         } else {
-            $controller_name = FacadeRequest::controller();
+            $controller_name = request()->controller();
         }
         // 当前请求url的对应验证器类
-        $validate = '\app\\' . FacadeRequest::module() . '\validate\\' . $controller_name;
-        if (class_exists($validate) && !empty($client_param_data)) {
+        $validate = '\app\\' . request()->module() . '\validate\\' . $controller_name;
+        if (class_exists($validate)) {
             $validate = new $validate();
-            $request_action_name = strtolower(FacadeRequest::action(true));
+            $action_name = strtolower(request()->action(true));
             // // 验证器基类 设置排除场景
             // $excludeActionBase  = $validate->getBaseExcludeActionScene();
             // // 验证器子类 设置排除场景
@@ -80,8 +79,8 @@ class BaseController extends \think\Controller
             //     return true;
             // }
             // 判断验证场景是否存在
-            if ($validate->hasScene($request_action_name)) {
-                $validate_result = $validate->scene($request_action_name)->check($client_param_data) === true ? true : $validate->getError();
+            if ($validate->hasScene($action_name)) {
+                $validate_result = $validate->scene($action_name)->check($client_param_data) === true ? true : $validate->getError();
             }
         }
         return $validate_result;
@@ -163,8 +162,10 @@ class BaseController extends \think\Controller
     {
         // 生成 token 字符串
         $token_str = $this->jwt_utils->buildToken($payload);
+
         // 存入 redis；jwt 部分
         $this->redis_utils::hset(RedisEnum::JWT_FOLDER . (string)$this->jwt_utils->jwt_hash_key, (string)$this->jwt_utils->jti, $token_str);
+
         // 存入 redis；用户信息 部分
         if (!empty($user_data)) {
             foreach ($user_data as $k => $v) {
@@ -173,9 +174,11 @@ class BaseController extends \think\Controller
         } else {
             $this->redis_utils::hset(RedisEnum::USER_FOLDER . (string)$this->jwt_utils->auth_hash_key, '', '');
         }
+
         // 刷新过期时间（确保在覆盖的是旧数据时能再用）
         $this->redis_utils->RefreshExpireTime(RedisEnum::JWT_FOLDER . (string)$this->jwt_utils->jwt_hash_key, RedisEnum::JWT_LIFECYCLE);
         $this->redis_utils->RefreshExpireTime(RedisEnum::USER_FOLDER . (string)$this->jwt_utils->auth_hash_key, RedisEnum::JWT_LIFECYCLE);
+
         return $token_str;
     }
 

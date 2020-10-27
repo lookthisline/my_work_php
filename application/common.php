@@ -1,10 +1,5 @@
 <?php
 
-use think\facade\Request;
-use think\response\Json;
-use think\exception\HttpResponseException;
-use think\facade\Log;
-
 /**
  * base64_url 编码
  * @param String $input
@@ -73,9 +68,10 @@ function clientResponse($data = [], string $message = 'success', bool $status = 
         'Access-Control-Allow-Origin'      => request()->header('origin'),
         // 跨域时允许 cookie 添加到请求中(允许 cookie 跨域)
         'Access-Control-Allow-Credentials' => 'true',
-        'Access-Control-Allow-Methods'     => 'GET,POST,HEAD,OPTIONS',
-        // 'Access-Control-Allow-Headers'     => '*,Authorization',
-        'Access-Control-Allow-Headers'     => 'origin,x-requested-with,content-type,accept,Authorization',
+        // 设置客户端访问的资源允许使用的方法
+        'Access-Control-Allow-Methods'     => 'GET,POST,PATCH,PUT,HEAD,OPTIONS,DELETE',
+        'Access-Control-Allow-Headers'     => '*,Authorization',
+        // 'Access-Control-Allow-Headers'     => 'origin,x-requested-with,content-type,accept,Authorization',
         // options 预检信息(Access-Control-Allow-Methods 和 Access-Control-Allow-Headers)的缓存时长 (s)
         'Access-Control-Max-Age'           => 60 * 60 * 1,
         // frame 标签设置
@@ -90,7 +86,7 @@ function clientResponse($data = [], string $message = 'success', bool $status = 
         'status'  => $status,
         'data'    => is_null($data) ? [] : $data,
         'message' => $message,
-        'cmd'     => request()->controller() . '/' . request()->action()
+        'cmd'     => request()->path()
     ];
 
     return json()->data($ret)->code($http_code)->header(array_merge($def_header, $header))->send();
