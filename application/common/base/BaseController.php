@@ -32,9 +32,9 @@ class BaseController extends \think\Controller
             ]);
         }
 
-        $message = self::checkActionParam();
-        if (!is_bool($message)) {
-            return clientResponse(null, $message, false);
+        $validate_error_message = self::checkActionParam();
+        if (!is_bool($validate_error_message)) {
+            return clientResponse(null, $validate_error_message, false);
         }
 
         $this->jwt_utils   = new JwtUtils();
@@ -52,32 +52,41 @@ class BaseController extends \think\Controller
      */
     private static function checkActionParam()
     {
+        // 校验结果
         $validate_result   = true;
+        // 获取所有客户端传过来的数据
         $client_param_data = request()->param(true);
         // 获取用户端在请求头携带的用户 token
         self::$token = (string)request()->header('Authorization', '');
         // url中携带的控制器名
         $controller_name = '';
+
         if (preg_match("/./", request()->controller())) {
             $controller_array = @explode(".", request()->controller());
             $controller_name  = ucfirst(end($controller_array));
         } else {
             $controller_name = request()->controller();
         }
+
         // 当前请求url的对应验证器类
         $validate = '\app\\' . request()->module() . '\validate\\' . $controller_name;
+
         if (class_exists($validate)) {
             $validate = new $validate();
             $action_name = strtolower(request()->action(true));
-            // // 验证器基类 设置排除场景
+
+            // 验证器基类 设置排除场景
             // $excludeActionBase  = $validate->getBaseExcludeActionScene();
-            // // 验证器子类 设置排除场景
+
+            // 验证器子类 设置排除场景
             // $excludeActionChild = $validate->getExcludeActionScene();
             // $excludeAction      = array_merge($excludeActionBase, $excludeActionChild);
-            // // 排除不需验证场景
+
+            // 排除不需验证场景
             // if (in_array($controller_name . "/" . $request->action(true), $excludeAction)) {
             //     return true;
             // }
+
             // 判断验证场景是否存在
             if ($validate->hasScene($action_name)) {
                 $validate_result = $validate->scene($action_name)->check($client_param_data) === true ? true : $validate->getError();
