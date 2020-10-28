@@ -27,7 +27,7 @@ class JwtUtils
     {
         // 初始化数据
         self::$payload = [
-            // aud (audience)：受众，接收jwt的一方
+            // aud (audience)：受众，接收 jwt 的一方
             'aud'           => 'client',
             // iat (Issued At)：签发时间
             'iat'           => time(),

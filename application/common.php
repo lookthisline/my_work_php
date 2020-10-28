@@ -20,13 +20,13 @@ function base64UrlDecode(String $input): String
     $remainder = strlen($input) % 4;
     if ($remainder) {
         $add_len = 4 - $remainder;
-        $input .= str_repeat('=', $add_len);
+        $input   .= str_repeat('=', $add_len);
     }
     return base64_decode(strtr($input, '-_', '+/'));
 }
 
 /**
- * 去除返回数据的key中的括号
+ * 去除返回数据的 key 中的括号
  * @param Array $data
  * @return Void
  */
@@ -54,7 +54,6 @@ function tripTag(array &$data): void
  * @param Boolean $status 当前响应为错误类型还是成功类型
  * @param Integer $http_code Http 响应状态码
  * @param Array $header
- * @return \think\response\Json
  */
 function clientResponse($data = [], string $message = 'success', bool $status = true, int $http_code = 200, array $header = [])
 {
@@ -99,6 +98,6 @@ function clientResponse($data = [], string $message = 'success', bool $status = 
  */
 function getUniqueCode(): string
 {
-    $time = explode(' ', microtime());
-    return substr(md5($time[1] . substr($time[0], 2) . mt_rand(0, 9)), 0, 30) . mt_rand(10, 99);
+    $time_arr = explode(' ', microtime());
+    return substr(md5($time_arr[1] . substr($time_arr[0], 2) . mt_rand(0, 9)), 0, 30) . mt_rand(10, 99);
 }

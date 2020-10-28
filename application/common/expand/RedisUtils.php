@@ -5,19 +5,19 @@ namespace app\common\expand;
 class RedisUtils
 {
     private object $handler;
-
     private static object $static_handler;
-
     private array $config = [
         'host'       => '127.0.0.1',
         'port'       => 6379,
         'password'   => '',
-        'timeout'    => 0,
-        'persistent' => false,
+        'timeout'    => 1.5,
+        'persistent' => true,
         'select'     => 0,
+        'prefix'     => ''
     ];
 
     /**
+     * 单机连接
      * @access public
      * @param Array $config
      */
@@ -25,39 +25,39 @@ class RedisUtils
     {
         // 优先从配置文件读取配置
         $config = !empty($config) ? $config : config('cache.redis', $this->config);
+
+        // 合并配置
         if (!empty($config)) {
             $this->config = array_merge($this->config, $config);
         }
-        if (extension_loaded('redis')) {
-            $this->handler = new \Redis;
+
+        // [PhpRedis](https://github.com/phpredis/phpredis)
+        if (extension_loaded('redis') && !isset($this->handler)) {
+            $this->handler = new \Redis();
+            // 长连接；依赖于 php-fpm 进程，php-fpm进程不死，redis connect 就一直存在，直到空闲超时自动断开
             if ($this->config['persistent']) {
                 $this->handler->pconnect($this->config['host'], $this->config['port'], $this->config['timeout'], 'persistent_id_' . $this->config['select']);
             } else {
                 $this->handler->connect($this->config['host'], $this->config['port'], $this->config['timeout']);
             }
-            if (!empty($this->config['password'])) {
-                $this->handler->auth($this->config['password']);
-            }
-            if (0 != $this->config['select']) {
-                $this->handler->select($this->config['select']);
-            }
-        } elseif (class_exists('\Predis\Client')) {
-            $params = [];
-            foreach ($this->config as $key => $val) {
-                if (in_array($key, ['aggregate', 'cluster', 'connections', 'exceptions', 'prefix', 'profile', 'replication', 'parameters'])) {
-                    $params[$key] = $val;
-                    unset($this->config[$key]);
-                }
-            }
-            if ('' == $this->config['password']) {
-                unset($this->config['password']);
-            }
-            $this->handler = new \Predis\Client($this->config, $params);
-            $this->config['prefix'] = '';
+
+            !$this->config['password'] ?: $this->handler->auth($this->config['password']);
+            // 选择数据表
+            (0 == (int)$this->config['select']) ?: $this->handler->select($this->config['select']);
+
+            self::$static_handler = &$this->handler;
+            return $this;
         } else {
             throw new \Exception('not support: redis');
         }
-        self::$static_handler = &$this->handler;
+
+        // [predis](https://github.com/predis/predis)
+        if (class_exists('\\Predis\\Client') && !isset($this->handler)) {
+            self::$static_handler = $this->handler = new \Predis\Client($this->config);
+            return $this;
+        } else {
+            throw new \Exception('not support: redis');
+        }
     }
 
     /**

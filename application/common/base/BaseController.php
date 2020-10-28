@@ -3,14 +3,14 @@
 namespace app\common\base;
 
 use app\common\enum\Redis as RedisEnum;
-use app\common\expand\JwtUtils;
-use app\common\expand\RedisUtils;
+use app\common\expand\UtilsFactory;
+use think\cache\driver\Redis;
 use think\Db;
 
 class BaseController extends \think\Controller
 {
     // jwt
-    private static string $token = '';
+    private static string $token;
     // jwt 工具类
     protected object $jwt_utils;
     // redis 工具类
@@ -37,10 +37,10 @@ class BaseController extends \think\Controller
             return clientResponse(null, $validate_error_message, false);
         }
 
-        $this->jwt_utils   = new JwtUtils();
-        $this->redis_utils = new RedisUtils();
+        $this->jwt_utils   = UtilsFactory::jwt();
+        $this->redis_utils = UtilsFactory::redis();
 
-        if (!empty(self::$token)) {
+        if (isset(self::$token) && self::$token) {
             $this->verifyToken(self::$token);
         }
     }
@@ -133,10 +133,11 @@ class BaseController extends \think\Controller
 
         // auth_hash_key 由公共方法 getUniqueCode() 生成并保存于jwt中，用于存储用户部分信息
         // 提取关键数据，验证关键数据有效性(查询存储用户信息文件夹)
-        if (isset($token_data['auth_hash_key']) && !empty($token_data['auth_hash_key'])) {
+        if (isset($token_data['auth_hash_key']) && $token_data['auth_hash_key']) {
             // 查询jwt对应用户信息
             $isset_user = $this->redis_utils::exists(RedisEnum::USER_FOLDER . (string)$token_data['auth_hash_key']);
             if ((bool)$isset_user) {
+                // Redis 中取出缓存的用户数据
                 $temp_user_data = $this->redis_utils::hgetall(RedisEnum::USER_FOLDER . (string)$token_data['auth_hash_key']);
                 if (empty($temp_user_data) || !isset($temp_user_data['id'])) {
                     return clientResponse(null, '无效凭证信息，请重新登录', false);

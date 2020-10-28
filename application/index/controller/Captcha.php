@@ -3,7 +3,7 @@
 namespace app\index\controller;
 
 use app\common\base\BaseController;
-use app\common\expand\Captcha\Main as CaptchaUtils;
+use app\common\expand\UtilsFactory;
 
 class Captcha extends BaseController
 {
@@ -16,7 +16,7 @@ class Captcha extends BaseController
     {
         $id = getUniqueCode();
         return clientResponse([
-            'picture'    => (new CaptchaUtils())->build($id),
+            'picture'    => UtilsFactory::captcha()->build($id),
             'captcha_id' => $id
         ]);
     }

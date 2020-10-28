@@ -4,7 +4,7 @@ namespace app\common\expand\Captcha;
 
 use app\common\enum\Redis as RedisEnum;
 use think\facade\Session;
-use app\common\expand\RedisUtils;
+use app\common\expand\UtilsFactory;
 
 /**
  * 重新封装的验证码类（修改tp的验证码类重新封装，去除中文验证码，修改生成图片方法）
@@ -60,7 +60,7 @@ class Main
     {
         $this->config = array_merge($this->config, $config);
         if ($this->useRedis) {
-            $this->config['redis_utils'] = new RedisUtils();
+            $this->config['redis_utils'] = UtilsFactory::redis();
         }
     }
 
