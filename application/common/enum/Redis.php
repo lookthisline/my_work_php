@@ -3,7 +3,7 @@
 namespace app\common\enum;
 
 /**
- * Redis 表对应关系
+ * Redis 表对应关系枚举类
  */
 class Redis
 {

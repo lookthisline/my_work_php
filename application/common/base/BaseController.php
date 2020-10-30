@@ -4,7 +4,6 @@ namespace app\common\base;
 
 use app\common\enum\Redis as RedisEnum;
 use app\common\expand\UtilsFactory;
-use think\cache\driver\Redis;
 use think\Db;
 
 class BaseController extends \think\Controller
