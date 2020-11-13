@@ -7,12 +7,16 @@ use app\common\expand\RedisUtils;
 use app\common\expand\Captcha\Main as CaptchaUtils;
 
 // Utils 简单工厂模式
-class UtilsFactory
+final class UtilsFactory
 {
     private static object $redis;
     private static object $jwt;
     private static object $captcha;
     // private static object $instance;
+
+    private function __construct()
+    {
+    }
 
     // /**
     //  * 单例无法维持，失败
@@ -39,8 +43,9 @@ class UtilsFactory
 
     public final static function redis(array $config = []): RedisUtils
     {
-        if (!isset(self::$redis)) {
-            self::$redis = new RedisUtils($config);
+        if (!(self::$redis instanceof RedisUtils)) {
+            // self::$redis = new RedisUtils($config);
+            self::$redis = RedisUtils::getInstance($config);
         }
         return self::$redis;
     }
@@ -59,5 +64,9 @@ class UtilsFactory
             self::$captcha = new CaptchaUtils($config);
         }
         return self::$captcha;
+    }
+
+    private function __clone()
+    {
     }
 }

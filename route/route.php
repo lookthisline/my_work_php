@@ -1,6 +1,15 @@
 <?php
 
+use \think\facade\Route;
+
+Route::miss(function () {
+    return clientResponse(null, '请求地址不存在', false);
+});
+
 return [
+    '/'              => function () {
+        return clientResponse(null, 'Hello World');
+    },
     // 获取验证码
     'captcha'        => ['index/captcha/getCaptcha', ['method' => 'get']],
     // 注册
@@ -18,5 +27,9 @@ return [
         ':modify_id'  => ['index/accounts/modify', ['method' => 'put|options'], ['modify_id' => '\d+']],
         // 删除用户
         ':delete_id'  => ['index/accounts/delete', ['method' => 'delete|options'], ['delete_id' => '\d+']]
-    ]
+    ],
+    '[test]' => [
+        'test1'     => ['index/test/testBbc', ['method' => 'get|options', 'middleware' => ['Test'], 'cross_domain' => true]],
+        'test2' => ['index/test/testBbd', ['method' => 'post|options', 'middleware' => ['Test']]],
+    ],
 ];

@@ -2,10 +2,12 @@
 
 namespace app\common\expand;
 
-class RedisUtils
+final class RedisUtils
 {
     private object $handler;
     private static object $static_handler;
+    // 自身实例
+    private static $instance;
     private array $config = [
         'host'       => '127.0.0.1',
         'port'       => 6379,
@@ -18,10 +20,10 @@ class RedisUtils
 
     /**
      * 单机连接
-     * @access public
-     * @param Array $config
+     * @access private
+     * @param Array $config = []
      */
-    public function __construct(array $config = [])
+    private function __construct(array $config = [])
     {
         // 优先从配置文件读取配置
         $config = !empty($config) ? $config : config('cache.redis', $this->config);
@@ -61,29 +63,17 @@ class RedisUtils
     }
 
     /**
-     * 每次执行将得到该次命令结果，不返回自身实例，无法实现链式操作
-     * @access public
-     * @param String $method
-     * @param Mixed $args
-     * @return Mixed
+     * 获取 Redis 实例
+     * @param $config = []
+     * @return Self
      */
-    public static function __callStatic($method, $args)
+    public static function getInstance($config = []): self
     {
-        // return self::$static_handler->$method(...$args);
-        return call_user_func_array([self::$static_handler, $method], $args);
-    }
-
-    /**
-     * 每次执行将得到该次命令结果，不返回自身实例，无法实现链式操作
-     * @access public
-     * @param String $method
-     * @param Mixed $args
-     * @return Mixed
-     */
-    public function __call($method, $args)
-    {
-        // return $this->handler->$method(...$args);
-        return call_user_func_array([$this->handler, $method], $args);
+        //判断实例有无创建，没有的话创建实例并返回，有的话直接返回
+        if (!(self::$instance instanceof self)) {
+            self::$instance = new self($config);
+        }
+        return self::$instance;
     }
 
     /**
@@ -114,5 +104,33 @@ class RedisUtils
                 $code = 1;
         }
         return $code;
+    }
+
+    /**
+     * @access public
+     * @param String $method_name
+     * @param Mixed $arguments
+     * @return Mixed
+     */
+    public static function __callStatic($method_name, $arguments)
+    {
+        // return self::$static_handler->$method_name($arguments);
+        return call_user_func([self::$static_handler, $method_name], $arguments);
+    }
+
+    /**
+     * @access public
+     * @param String $method_name
+     * @param Mixed $arguments
+     * @return Mixed
+     */
+    public function __call($method_name, $arguments)
+    {
+        // return $this->handler->$method_name($arguments);
+        return call_user_func([$this->handler, $method_name], $arguments);
+    }
+
+    private function __clone()
+    {
     }
 }

@@ -2,8 +2,7 @@
 
 namespace app\common\expand;
 
-
-class JwtUtils
+final class JwtUtils
 {
     protected static array $payload;
 
