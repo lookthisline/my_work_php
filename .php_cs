@@ -4,11 +4,14 @@
 return PhpCsFixer\Config::create()
     ->setRules([
         '@PSR2' => true,
+        'psr4' => true,
+        'strict_comparison' => true,
+        'strict_param' => true,
         // 每个属性和方法都必须指定作用域是 public、protected 还是 private，abstract 和 final 必须位于作用域关键字之前，static 必须位于作用域之后
         'visibility_required' => [
             'property',
             'method',
-            'const',
+            'const'
         ],
         // 删除非空行之后多余的空格
         'trailing_spaces' => true,
@@ -23,7 +26,7 @@ return PhpCsFixer\Config::create()
         // 数组的每个元素必须缩进一次
         'array_indentation' => true,
         // 多行DocComments的每一行都必须带有星号[PSR-5]，并且必须与第一行对齐
-        // 'align_multiline_comment' => true,
+        'align_multiline_comment' => true,
         // 类型强制转换和变量之间不能有单个空格
         'cast_spaces' => true,
         // PHP代码必须仅使用不带BOM的UTF-8（删除BOM）
@@ -68,8 +71,14 @@ return PhpCsFixer\Config::create()
         // 'blank_line_before_return' => true,
         // 所有语句块都必须包含在花括号内，且位置以及缩进是符合标准的
         'braces' => [
+            // 是否应允许使用单行 lambda（匿名函数） 表示法
             'allow_single_line_closure' => true,
-            'position_after_anonymous_constructs' => ['next','same']
+            // 是否将花括号放在匿名构造（匿名类和lambda（匿名函数）函数）之后的下一行或同一行上
+            'position_after_anonymous_constructs' => [/* 'next', */ 'same'],
+            // 花括号是否应放置在控制结构之后的 下一条 或 同一条 线上
+            'position_after_control_structures' => ['next'/* , 'same' */],
+            // 是否将花括号放在经典构造（非匿名类(non-anonymous)、接口类(interfaces)、特征(traits)、函数方法(methods) 和 非lambda（匿名函数）函数）之后的下一行或同一行上
+            'position_after_functions_and_oop_constructs' => ['next'/* , 'same' */]
         ],
         // 变量和修饰符之间的间距
         'cast_spaces' => [
@@ -79,7 +88,11 @@ return PhpCsFixer\Config::create()
             ]
         ],
         // 类，特征或接口定义的关键字周围的空格应为一个空格
-        'class_definition' => ['singleLine' => true],
+        'class_definition' => [
+            'single_line' => true,
+            'single_item_single_line' => true,
+            'multi_line_extends_each_single_line' => true
+        ],
         // 点连接符左右两边有一个的空格(.拼接必须有空格分割)
         'concat_space' => ['spacing' => 'one'],
         'declare_equal_normalize' => true,
@@ -92,7 +105,7 @@ return PhpCsFixer\Config::create()
         // 常量为小写
         // 'lowercase_constants' => true,
         // 'native_function_casing' => true,
-        // 使用 new 新建实例时后面都应该带上括号
+        // 实例化类时后面都应该带上括号
         'new_with_braces' => true,
         // 删除多余空白行
         'extra_empty_lines' => true,
@@ -104,23 +117,25 @@ return PhpCsFixer\Config::create()
         'no_empty_statement' => true,
         // 删除代码段之间多余的空白行
         'no_extra_consecutive_blank_lines' => [
-            'curly_brace_block',
-            'extra',
-            'parenthesis_brace_block',
-            'square_brace_block',
-            'throw',
-            'use',
-            'break',
-            'case',
-            'continue',
-            'default',
-            'return',
-            'switch',
-            'use',
-            'useTrait',
-            'use_trait',
+            'token' => [
+                'curly_brace_block',
+                'extra',
+                'parenthesis_brace_block',
+                'square_brace_block',
+                'throw',
+                'use',
+                'break',
+                'case',
+                'continue',
+                'default',
+                'return',
+                'switch',
+                'use',
+                'useTrait',
+                'use_trait'
+            ]
         ],
-        // 删除 use 前的空行
+        // 删除 use 前的斜杠
         'no_leading_import_slash' => true,
         // 删除 use 前的空行
         'remove_leading_slash_use' => true,
@@ -150,8 +165,45 @@ return PhpCsFixer\Config::create()
         // 'no_unneeded_control_parentheses' => true,
         // 删除未使用的 use 引入
         'no_unused_imports' => true,
-        // 按顺序use导入
+        // 排序 use 导入
         'ordered_imports' => true,
+        'ordered_class_elements' => [
+            // 排序指定元素
+            'order' => [
+                'use_trait',
+                // 'public',
+                // 'protected',
+                // 'private',
+                // 'constant',
+                'constant_public',
+                'constant_protected',
+                'constant_private',
+                // 'property',
+                // 'property_static',
+                'property_public',
+                'property_protected',
+                'property_private',
+                // 'property_public_static',
+                // 'property_protected_static',
+                // 'property_private_static',
+                // 'method',
+                // 'method_static',
+                'method_public',
+                'method_protected',
+                'method_private',
+                // 'method_public_static',
+                // 'method_protected_static',
+                // 'method_private_static',
+                'construct',
+                'destruct',
+                'magic',
+                'phpunit'
+            ],
+            'sortAlgorithm' => [
+                // 'none',
+                'alpha',
+            ]
+        ],
         // 每个 use 声明独立一行，且 use 语句块之后要有一个空白行
         "single_line_after_imports" => true,
         'no_whitespace_before_comma_in_array' => true,
@@ -187,7 +239,8 @@ return PhpCsFixer\Config::create()
         // 'phpdoc_var_without_name' => true,
         // 'pre_increment' => true,
         // 'return_type_declaration' => true,
-        // 'self_accessor' => true,
+        // 在当前类中使用self代替类名
+        'self_accessor' => true,
         // 'short_scalar_cast' => true,
         // 'single_class_element_per_statement' => true,
         // 'space_after_semicolon' => true,
