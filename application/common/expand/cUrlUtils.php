@@ -16,7 +16,7 @@ final class cUrlUtils
     private $_url;
     private $_port;
     private $_method;
-    private $_params;
+    private $_parameter;
     private $_header = [];
     private $_timeout = 0;
     private $_http_version = CURL_HTTP_VERSION_NONE;
@@ -55,7 +55,7 @@ final class cUrlUtils
      * @param mixed $other
      * @return self
      */
-    public static function instance(string $request_url, $other = null): self
+    public static function instance(string $request_url): self
     {
         if (!(self::$instance instanceof self)) {
             self::$instance = new self($request_url);
@@ -134,40 +134,41 @@ final class cUrlUtils
                 break;
             case 'put':
                 $this->_header['Content-Type'] = 'application/json;';
-                $this->_params = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
+                $this->_parameter = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
                 $this->setOther(CURLOPT_URL, $this->_url);
                 $this->setOther(CURLOPT_CUSTOMREQUEST, 'PUT');
-                $this->setOther(CURLOPT_POSTFIELDS, $this->_params);
+                $this->setOther(CURLOPT_POSTFIELDS, $this->_parameter);
                 break;
             case 'get':
-                $this->_params = $param = $param && is_array($param) ? http_build_query($param) : [];
-                $this->setOther(CURLOPT_URL, $this->_url . (!$this->_params ? '' : '?' .$this->_params));
+                $this->_parameter = $param = $param && is_array($param) ? http_build_query($param) : [];
+                $this->setOther(CURLOPT_URL, $this->_url . (!$this->_parameter ? '' : '?' . $this->_parameter));
                 $this->setOther(CURLOPT_CUSTOMREQUEST, 'GET');
                 $this->setOther(CURLOPT_HTTPGET, true);
                 break;
             case 'post':
                 $this->_header['Content-Type'] = 'multipart/form-data;';
-                $this->_params = $param = $param && is_array($param) ? $param : [];
+                $this->_parameter = $param = $param && is_array($param) ? $param : [];
                 $this->setOther(CURLOPT_URL, $this->_url);
                 $this->setOther(CURLOPT_CUSTOMREQUEST, 'POST');
-                $this->setOther(CURLOPT_POSTFIELDS, $this->_params);
+                $this->setOther(CURLOPT_POSTFIELDS, $this->_parameter);
                 break;
             case 'delete':
                 $this->_header['Content-Type'] = 'application/json;';
-                $this->_params = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
+                $this->_parameter = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
                 $this->setOther(CURLOPT_URL, $this->_url);
                 $this->setOther(CURLOPT_CUSTOMREQUEST, 'DELETE');
-                $this->setOther(CURLOPT_POSTFIELDS, $this->_params);
+                $this->setOther(CURLOPT_POSTFIELDS, $this->_parameter);
                 break;
             case 'patch':
                 $this->_header['Content-Type'] = 'application/json;';
-                $this->_params = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
+                $this->_parameter = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
                 $this->setOther(CURLOPT_URL, $this->_url);
                 $this->setOther(CURLOPT_CUSTOMREQUEST, 'PATCH');
-                $this->setOther(CURLOPT_POSTFIELDS, $this->_params);
+                $this->setOther(CURLOPT_POSTFIELDS, $this->_parameter);
                 break;
             default:
                 throw new Exception('Not supported Request Method: ' . $this->_method);
+                break;
         }
         $this->_method = $method;
         return $this;
@@ -202,9 +203,9 @@ final class cUrlUtils
             throw new Exception(curl_error($this->_cUrl), curl_errno($this->_cUrl));
         }
         if (curl_getinfo($this->_cUrl, CURLINFO_HTTP_CODE) == 200) {
-            list($data['header'], $data['body']) = explode("\r\n\r\n", $result, 2);
-            // $headerSize = curl_getinfo($this->_cUrl, CURLINFO_HEADER_SIZE);  // 获取header长度
-            // $result     = substr($result, $headerSize);                     // 截取掉header
+            list($data['response_header'], $data['response_body']) = explode(PHP_EOL . PHP_EOL, $result, 2);
+            // $header_size = curl_getinfo($this->_cUrl, CURLINFO_HEADER_SIZE);  // 获取header长度
+            // $result     = substr($result, $header_size);                     // 截取掉header
         }
         return $data;
     }
