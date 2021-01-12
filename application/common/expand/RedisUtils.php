@@ -22,7 +22,7 @@ final class RedisUtils
 
     public function __destruct()
     {
-        return static::$_instance[self::$k]->redis->close();
+        return $this->redis->close();
     }
 
     private function __construct(array $config)
@@ -97,7 +97,7 @@ final class RedisUtils
      */
     public function __call($method_name, $arguments)
     {
-        return call_user_func([static::$_instance[self::$k]->redis, $method_name], ...$arguments);
+        return call_user_func([$this->redis, $method_name], ...$arguments);
     }
 
     /**

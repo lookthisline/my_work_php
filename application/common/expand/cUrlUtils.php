@@ -12,12 +12,13 @@ use \Exception;
 final class cUrlUtils
 {
     private static $instance;
-    private $cUrl;
+    private $_cUrl;
     private $_url;
-    private $_port = 80;
+    private $_port;
     private $_method;
     private $_params;
-    private $_timeout;
+    private $_header = [];
+    private $_timeout = 0;
     private $_http_version = CURL_HTTP_VERSION_NONE;
     private $_user_agent;
 
@@ -26,21 +27,27 @@ final class cUrlUtils
      */
     private function __construct(string $request_url)
     {
-        $this->_url = $request_url;
-        $this->cUrl = curl_init($this->_url);
-        curl_setopt($this->cUrl, CURLOPT_TIMEOUT, $this->_timeout);
-        curl_setopt($this->cUrl, CURLOPT_RETURNTRANSFER, true);
-        // curl_setopt($this->cUrl, CURLOPT_HTTPHEADER, []);
+        $this->_url  = $request_url;
+        $this->_cUrl = curl_init();
+        curl_setopt_array($this->_cUrl, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
+        ]);
     }
 
-    private function __destruct()
+    public function __destruct()
     {
-        $this->close();
+        curl_close($this->_cUrl);
     }
-
 
     private function __clone()
     {
+    }
+
+    public function __get(string $name)
+    {
+        return isset($this->$name) ? $this->name : null;
     }
 
     /**
@@ -54,16 +61,22 @@ final class cUrlUtils
             self::$instance = new self($request_url);
         } else {
             self::$instance->_url = $request_url;
-            curl_setopt_array(self::$instance->cUrl, [
-                CURLOPT_URL => $request_url
-            ]);
         }
         return self::$instance;
     }
 
     public function setNoBody(): self
     {
-        curl_setopt($this->cUrl, CURLOPT_NOBODY, true);
+        $this->setOther(CURLOPT_NOBODY, true);
+        return $this;
+    }
+
+    /**
+     * @param array $header
+     */
+    public function setHeader(array $header = []): self
+    {
+        array_merge($this->_header, $header);
         return $this;
     }
 
@@ -73,8 +86,8 @@ final class cUrlUtils
      */
     public function setPort(int $port): self
     {
-        $this->_port = $port;
-        curl_setopt($this->cUrl, CURLOPT_PORT, $port);
+        $this->_port = $port ?: 80;
+        $this->setOther(CURLOPT_PORT, $this->_port);
         return $this;
     }
 
@@ -84,68 +97,115 @@ final class cUrlUtils
      */
     public function setHttpVersion(int $version): self
     {
-        $this->_http_version = $version;
-        curl_setopt($this->cUrl, CURLOPT_HTTP_VERSION, $version);
+        $this->_http_version = $version ?: CURL_HTTP_VERSION_1_1;
+        $this->setOther(CURLOPT_HTTP_VERSION, $this->_http_version);
+        return $this;
+    }
+
+    /**
+     * @param bool $is_use
+     * @param string $certificate_path
+     */
+    public function setSslVerify(bool $is_use = true, string $certificate_path = ''): self
+    {
+        $this->setOther(CURLOPT_SSL_VERIFYPEER, $is_use);
+        $this->setOther(CURLOPT_SSL_VERIFYHOST, $is_use);
+        !$certificate_path ?: $this->setOther(CURLOPT_CAINFO, $certificate_path);
         return $this;
     }
 
     /**
      * @param string $method
+     * @param mixed $param
+     * @param string $content_type
      * @return self
      */
-    public function setMethod(string $method = 'GET', array $param = []): self
+    public function setMethod(string $method = 'get', $param = []): self
     {
         $this->_method = $method;
-        $param = (is_array($param)) ? http_build_query($param) : $param;
-        switch (strtoupper($this->_method)) {
-            case 'GET':
-                curl_setopt($this->cUrl, CURLOPT_HTTPGET, true);
+        switch (strtolower($this->_method)) {
+            case 'head':
+                $this->setOther(CURLOPT_URL, $this->_url);
+                $this->setOther(CURLOPT_CUSTOMREQUEST, 'HEAD');
                 break;
-            case 'POST':
-                curl_setopt($this->cUrl, CURLOPT_POST, true);
-                curl_setopt($this->cUrl, CURLOPT_POSTFIELDS, $param);
+            case 'options':
+                $this->setOther(CURLOPT_URL, $this->_url);
+                $this->setOther(CURLOPT_CUSTOMREQUEST, 'OPTIONS');
+                break;
+            case 'put':
+                $this->_header['Content-Type'] = 'application/json;';
+                $this->_params = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
+                $this->setOther(CURLOPT_URL, $this->_url);
+                $this->setOther(CURLOPT_CUSTOMREQUEST, 'PUT');
+                $this->setOther(CURLOPT_POSTFIELDS, $this->_params);
+                break;
+            case 'get':
+                $this->_params = $param = $param && is_array($param) ? http_build_query($param) : [];
+                $this->setOther(CURLOPT_URL, $this->_url . (!$this->_params ? '' : '?' .$this->_params));
+                $this->setOther(CURLOPT_CUSTOMREQUEST, 'GET');
+                $this->setOther(CURLOPT_HTTPGET, true);
+                break;
+            case 'post':
+                $this->_header['Content-Type'] = 'multipart/form-data;';
+                $this->_params = $param = $param && is_array($param) ? $param : [];
+                $this->setOther(CURLOPT_URL, $this->_url);
+                $this->setOther(CURLOPT_CUSTOMREQUEST, 'POST');
+                $this->setOther(CURLOPT_POSTFIELDS, $this->_params);
+                break;
+            case 'delete':
+                $this->_header['Content-Type'] = 'application/json;';
+                $this->_params = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
+                $this->setOther(CURLOPT_URL, $this->_url);
+                $this->setOther(CURLOPT_CUSTOMREQUEST, 'DELETE');
+                $this->setOther(CURLOPT_POSTFIELDS, $this->_params);
+                break;
+            case 'patch':
+                $this->_header['Content-Type'] = 'application/json;';
+                $this->_params = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
+                $this->setOther(CURLOPT_URL, $this->_url);
+                $this->setOther(CURLOPT_CUSTOMREQUEST, 'PATCH');
+                $this->setOther(CURLOPT_POSTFIELDS, $this->_params);
                 break;
             default:
-                throw new Exception('不支持的方法：' . $this->_method);
+                throw new Exception('Not supported Request Method: ' . $this->_method);
         }
+        $this->_method = $method;
         return $this;
     }
 
-    public function close()
+    /**
+     * @param mixed $parameter
+     * @param mixed $val
+     */
+    public function setOther($parameter, $val):self
     {
-        curl_close($this->cUrl);
+        curl_setopt($this->_cUrl, $parameter, $val);
+        return $this;
     }
 
     /**
+     * @param bool $require_head
      * @param int $timeout
      */
     public function query(int $timeout = 0)
     {
-        // $time   = microtime(true);
-        // $expire = $time + ($timeout ?: $this->_timeout);
-        //
-        // $pid = pcntl_fork();
-        //
-        // if ($pid == -1) {
-        //     die('could not fork');
-        // } elseif ($pid) {
-        $result        = curl_exec($this->cUrl);
-        $response_code = curl_getinfo($this->cUrl, CURLINFO_HTTP_CODE);
-        if (curl_error($this->cUrl)) {
-            throw new Exception(curl_error($this->cUrl));
+        $this->setOther(CURLOPT_HEADER, true);
+        $this->_timeout = $timeout ?: 0;
+        $this->setOther(CURLOPT_TIMEOUT, $this->_timeout);
+        $header = [];
+        foreach ($this->_header as $k=>$v) {
+            array_push($header, $k . ':' . (string)$v);
         }
-        // pcntl_wait($status);
-        return $result;
-        // } else {
-        //     while (microtime(true) < $expire) {
-        //         sleep(0.5);
-        //     }
-        //     return false;
-        // }
-    }
-
-    public function __get(string $name)
-    {
-        return isset($this->$name) ? $this->name : null;
+        !$header ?: $this->setOther(CURLOPT_HTTPHEADER, $header);
+        $result = curl_exec($this->_cUrl);
+        if (curl_error($this->_cUrl)) {
+            throw new Exception(curl_error($this->_cUrl), curl_errno($this->_cUrl));
+        }
+        if (curl_getinfo($this->_cUrl, CURLINFO_HTTP_CODE) == 200) {
+            list($data['header'], $data['body']) = explode("\r\n\r\n", $result, 2);
+            // $headerSize = curl_getinfo($this->_cUrl, CURLINFO_HEADER_SIZE);  // 获取header长度
+            // $result     = substr($result, $headerSize);                     // 截取掉header
+        }
+        return $data;
     }
 }
