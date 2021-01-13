@@ -67,8 +67,7 @@ final class cUrlUtils
 
     public function setNoBody(): self
     {
-        $this->setOther(CURLOPT_NOBODY, true);
-        return $this;
+        return $this->setOther(CURLOPT_NOBODY, true);
     }
 
     /**
@@ -87,8 +86,7 @@ final class cUrlUtils
     public function setPort(int $port): self
     {
         $this->_port = $port ?: 80;
-        $this->setOther(CURLOPT_PORT, $this->_port);
-        return $this;
+        return $this->setOther(CURLOPT_PORT, $this->_port);
     }
 
     /**
@@ -98,8 +96,7 @@ final class cUrlUtils
     public function setHttpVersion(int $version): self
     {
         $this->_http_version = $version ?: CURL_HTTP_VERSION_1_1;
-        $this->setOther(CURLOPT_HTTP_VERSION, $this->_http_version);
-        return $this;
+        return $this->setOther(CURLOPT_HTTP_VERSION, $this->_http_version);
     }
 
     /**
@@ -142,8 +139,8 @@ final class cUrlUtils
             case 'get':
                 $this->_parameter = $param = $param && is_array($param) ? http_build_query($param) : [];
                 $this->setOther(CURLOPT_URL, $this->_url . (!$this->_parameter ? '' : '?' . $this->_parameter));
-                $this->setOther(CURLOPT_CUSTOMREQUEST, 'GET');
-                $this->setOther(CURLOPT_HTTPGET, true);
+                // $this->setOther(CURLOPT_CUSTOMREQUEST, 'GET');
+                // $this->setOther(CURLOPT_HTTPGET, true);
                 break;
             case 'post':
                 $this->_header['Content-Type'] = 'multipart/form-data;';
@@ -175,6 +172,17 @@ final class cUrlUtils
     }
 
     /**
+     * @param int $second
+     * @return self
+     */
+    public function setTimeOut(int $second): self
+    {
+        $this->_timeout = $second ?: 6;
+        $this->setOther(CURLOPT_TIMEOUT, $this->_timeout);
+        return $this->setOther(CURLOPT_CONNECTTIMEOUT, $this->_timeout);
+    }
+
+    /**
      * @param mixed $parameter
      * @param mixed $val
      */
@@ -185,28 +193,37 @@ final class cUrlUtils
     }
 
     /**
-     * @param bool $require_head
-     * @param int $timeout
+     * @param bool $require_header
+     * @return array|bool
      */
-    public function query(int $timeout = 0)
+    public function query(bool $require_header = false)
     {
-        $this->setOther(CURLOPT_HEADER, true);
-        $this->_timeout = $timeout ?: 0;
-        $this->setOther(CURLOPT_TIMEOUT, $this->_timeout);
+        $result = [];
         $header = [];
+        !$require_header ?: $this->setOther(CURLOPT_HEADER, true);
         foreach ($this->_header as $k=>$v) {
             array_push($header, $k . ':' . (string)$v);
         }
         !$header ?: $this->setOther(CURLOPT_HTTPHEADER, $header);
-        $result = curl_exec($this->_cUrl);
+        $execute_result = curl_exec($this->_cUrl);
         if (curl_error($this->_cUrl)) {
             throw new Exception(curl_error($this->_cUrl), curl_errno($this->_cUrl));
         }
-        if (curl_getinfo($this->_cUrl, CURLINFO_HTTP_CODE) == 200) {
-            list($data['response_header'], $data['response_body']) = explode(PHP_EOL . PHP_EOL, $result, 2);
+        if ($require_header) {
+            if (curl_getinfo($this->_cUrl, CURLINFO_HTTP_CODE) == 200) {
+                list($result['response_header'], $result['response_body']) = explode(PHP_EOL . PHP_EOL, $execute_result, 2);
             // $header_size = curl_getinfo($this->_cUrl, CURLINFO_HEADER_SIZE);  // 获取header长度
-            // $result     = substr($result, $header_size);                     // 截取掉header
+                // $result      = substr($result, $header_size);                     // 截取掉header
+            } else {
+                $result = false;
+            }
+        } else {
+            if (curl_getinfo($this->_cUrl, CURLINFO_HTTP_CODE) == 200) {
+                $result = $execute_result;
+            } else {
+                $result = false;
+            }
         }
-        return $data;
+        return $result;
     }
 }
