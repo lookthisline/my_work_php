@@ -119,30 +119,30 @@ final class cUrlUtils
      */
     public function setMethod(string $method = 'get', $param = []): self
     {
-        $this->_method = strtolower($method);
+        $this->_method = strtoupper($method);
         switch ($this->_method) {
-            case 'head':
+            case 'HEAD':
                 break;
-            case 'options':
+            case 'OPTIONS':
                 break;
-            case 'put':
+            case 'PUT':
                 $this->_header['Content-Type'] = 'application/json;';
                 $this->_parameter              = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
                 break;
-            case 'get':
+            case 'GET':
                 $this->_parameter = $param = $param && is_array($param) ? http_build_query($param) : [];
                 $this->_url .= !$this->_parameter ? '' : '?' . $this->_parameter;
                 $this->setOther(CURLOPT_HTTPGET, true);
                 break;
-            case 'post':
+            case 'POST':
                 $this->_header['Content-Type'] = 'multipart/form-data;';
                 $this->_parameter              = $param = $param && is_array($param) ? $param : [];
                 break;
-            case 'delete':
+            case 'DELETE':
                 $this->_header['Content-Type'] = 'application/json;';
                 $this->_parameter              = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
                 break;
-            case 'patch':
+            case 'PATCH':
                 $this->_header['Content-Type'] = 'application/json;';
                 $this->_parameter              = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
                 break;
