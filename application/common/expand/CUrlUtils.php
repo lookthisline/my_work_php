@@ -9,16 +9,16 @@ use \Exception;
  * @final
  * @internal
  */
-final class cUrlUtils
+final class CUrlUtils
 {
     private static $instance;
     private $_cUrl;
     private $_url;
     private $_port;
-    private $_method = 'GET';
-    private $_parameter = [];
-    private $_header = [];
-    private $_timeout = 0;
+    private $_method       = 'GET';
+    private $_parameter    = [];
+    private $_header       = [];
+    private $_timeout      = 0;
     private $_http_version = CURL_HTTP_VERSION_NONE;
     private $_user_agent;
 
@@ -41,10 +41,16 @@ final class cUrlUtils
         curl_close($this->_cUrl);
     }
 
+    /**
+     * @access private
+     */
     private function __clone()
     {
     }
 
+    /**
+     * @param string $name
+     */
     public function __get(string $name)
     {
         return isset($this->$name) ? $this->name : null;
@@ -65,6 +71,9 @@ final class cUrlUtils
         return self::$instance;
     }
 
+    /**
+     * @return self
+     */
     public function setNoBody(): self
     {
         return $this->setOther(CURLOPT_NOBODY, true);
@@ -75,7 +84,7 @@ final class cUrlUtils
      */
     public function setHeader(array $header = []): self
     {
-        array_merge($this->_header, $header);
+        $this->_header = array_merge($this->_header, $header);
         return $this;
     }
 
