@@ -15,8 +15,8 @@ final class cUrlUtils
     private $_cUrl;
     private $_url;
     private $_port;
-    private $_method;
-    private $_parameter;
+    private $_method = 'GET';
+    private $_parameter = [];
     private $_header = [];
     private $_timeout = 0;
     private $_http_version = CURL_HTTP_VERSION_NONE;
@@ -119,55 +119,37 @@ final class cUrlUtils
      */
     public function setMethod(string $method = 'get', $param = []): self
     {
-        $this->_method = $method;
-        switch (strtolower($this->_method)) {
+        $this->_method = strtolower($method);
+        switch ($this->_method) {
             case 'head':
-                $this->setOther(CURLOPT_URL, $this->_url);
-                $this->setOther(CURLOPT_CUSTOMREQUEST, 'HEAD');
                 break;
             case 'options':
-                $this->setOther(CURLOPT_URL, $this->_url);
-                $this->setOther(CURLOPT_CUSTOMREQUEST, 'OPTIONS');
                 break;
             case 'put':
                 $this->_header['Content-Type'] = 'application/json;';
-                $this->_parameter = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
-                $this->setOther(CURLOPT_URL, $this->_url);
-                $this->setOther(CURLOPT_CUSTOMREQUEST, 'PUT');
-                $this->setOther(CURLOPT_POSTFIELDS, $this->_parameter);
+                $this->_parameter              = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
                 break;
             case 'get':
                 $this->_parameter = $param = $param && is_array($param) ? http_build_query($param) : [];
-                $this->setOther(CURLOPT_URL, $this->_url . (!$this->_parameter ? '' : '?' . $this->_parameter));
-                // $this->setOther(CURLOPT_CUSTOMREQUEST, 'GET');
-                // $this->setOther(CURLOPT_HTTPGET, true);
+                $this->_url .= !$this->_parameter ? '' : '?' . $this->_parameter;
+                $this->setOther(CURLOPT_HTTPGET, true);
                 break;
             case 'post':
                 $this->_header['Content-Type'] = 'multipart/form-data;';
-                $this->_parameter = $param = $param && is_array($param) ? $param : [];
-                $this->setOther(CURLOPT_URL, $this->_url);
-                $this->setOther(CURLOPT_CUSTOMREQUEST, 'POST');
-                $this->setOther(CURLOPT_POSTFIELDS, $this->_parameter);
+                $this->_parameter              = $param = $param && is_array($param) ? $param : [];
                 break;
             case 'delete':
                 $this->_header['Content-Type'] = 'application/json;';
-                $this->_parameter = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
-                $this->setOther(CURLOPT_URL, $this->_url);
-                $this->setOther(CURLOPT_CUSTOMREQUEST, 'DELETE');
-                $this->setOther(CURLOPT_POSTFIELDS, $this->_parameter);
+                $this->_parameter              = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
                 break;
             case 'patch':
                 $this->_header['Content-Type'] = 'application/json;';
-                $this->_parameter = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
-                $this->setOther(CURLOPT_URL, $this->_url);
-                $this->setOther(CURLOPT_CUSTOMREQUEST, 'PATCH');
-                $this->setOther(CURLOPT_POSTFIELDS, $this->_parameter);
+                $this->_parameter              = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
                 break;
             default:
                 throw new Exception('Not supported Request Method: ' . $this->_method);
                 break;
         }
-        $this->_method = $method;
         return $this;
     }
 
@@ -200,6 +182,9 @@ final class cUrlUtils
     {
         $result = [];
         $header = [];
+        $this->setOther(CURLOPT_URL, $this->_url);
+        $this->setOther(CURLOPT_CUSTOMREQUEST, $this->_method);
+        !$this->_parameter ?: $this->setOther(CURLOPT_POSTFIELDS, $this->_parameter);
         !$require_header ?: $this->setOther(CURLOPT_HEADER, true);
         foreach ($this->_header as $k=>$v) {
             array_push($header, $k . ':' . (string)$v);
