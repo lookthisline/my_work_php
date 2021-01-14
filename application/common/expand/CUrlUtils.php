@@ -5,7 +5,7 @@ namespace app\common\expand;
 use \Exception;
 
 /**
- * cUrl 工具
+ * cUrl 工具类
  * @final
  * @internal
  */
@@ -15,12 +15,13 @@ final class CUrlUtils
     private $_cUrl;
     private $_url;
     private $_port;
-    private $_method       = 'GET';
-    private $_parameter    = [];
-    private $_header       = [];
-    private $_timeout      = 0;
-    private $_http_version = CURL_HTTP_VERSION_NONE;
-    private $_user_agent;
+    private $_parameter;
+    private $_method                    = 'GET';
+    private $_timeout                   = 0;
+    private $_header                    = ['charset' => 'utf8'];
+    private $_http_version              = CURL_HTTP_VERSION_NONE;
+    private static $_allow_content_type = ['multipart/form-data', 'application/json', 'application/x-www-form-urlencoded'];
+    private static $_allow_methods      = ['GET', 'POST', 'PATCH', 'PUT', 'HEAD', 'OPTIONS', 'DELETE'];
 
     /**
      * @param string $request_url
@@ -102,7 +103,7 @@ final class CUrlUtils
      * @param int $version CURL_HTTP_VERSION_NONE CURL_HTTP_VERSION_1_0 CURL_HTTP_VERSION_1_1
      * @return self
      */
-    public function setHttpVersion(int $version): self
+    public function setHttpVersion(int $version = CURL_HTTP_VERSION_1_1): self
     {
         $this->_http_version = $version ?: CURL_HTTP_VERSION_1_1;
         return $this->setOther(CURLOPT_HTTP_VERSION, $this->_http_version);
@@ -123,40 +124,44 @@ final class CUrlUtils
     /**
      * @param string $method
      * @param mixed $param
-     * @param string $content_type
      * @return self
      */
     public function setMethod(string $method = 'get', $param = []): self
     {
         $this->_method = strtoupper($method);
-        switch ($this->_method) {
-            case 'HEAD':
+        if (!in_array($this->_method, self::$_allow_methods)) {
+            throw new Exception('Not supported Request Method: ' . $this->_method);
+        }
+        if ($this->_method === 'GET') {
+            $this->_parameter = $param && is_array($param) ? http_build_query($param) : '';
+            $this->_url .= !$this->_parameter ? '' : '?' . $this->_parameter;
+            $this->setOther(CURLOPT_HTTPGET, true);
+        }
+        return $this;
+    }
+
+    /**
+     * @param mixed $parameter
+     * @param string $content_type
+     * @return self
+     */
+    public function setParameter($parameter, string $content_type = 'multipart/form-data'): self
+    {
+        if (!in_array($content_type, self::$_allow_content_type)) {
+            throw new Exception('Not supported Content Type: ' . $this->_method);
+        }
+        $this->_header['Content-Type'] = $content_type;
+        switch ($this->_header['Content-Type']) {
+            case 'application/json':
+                $this->_parameter = $parameter && is_array($parameter) ? json_encode($parameter, JSON_UNESCAPED_UNICODE) : '{}';
                 break;
-            case 'OPTIONS':
+            case 'multipart/form-data':
+                $this->_parameter = $parameter && is_array($parameter) ? $parameter : [];
                 break;
-            case 'PUT':
-                $this->_header['Content-Type'] = 'application/json;';
-                $this->_parameter              = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
-                break;
-            case 'GET':
-                $this->_parameter = $param = $param && is_array($param) ? http_build_query($param) : [];
-                $this->_url .= !$this->_parameter ? '' : '?' . $this->_parameter;
-                $this->setOther(CURLOPT_HTTPGET, true);
-                break;
-            case 'POST':
-                $this->_header['Content-Type'] = 'multipart/form-data;';
-                $this->_parameter              = $param = $param && is_array($param) ? $param : [];
-                break;
-            case 'DELETE':
-                $this->_header['Content-Type'] = 'application/json;';
-                $this->_parameter              = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
-                break;
-            case 'PATCH':
-                $this->_header['Content-Type'] = 'application/json;';
-                $this->_parameter              = $param = $param && is_array($param) ? json_encode($param, JSON_UNESCAPED_UNICODE) : '{}';
+            case 'application/x-www-form-urlencoded':
+                $this->_parameter = $parameter && is_array($parameter) ? http_build_query($parameter) : '';
                 break;
             default:
-                throw new Exception('Not supported Request Method: ' . $this->_method);
                 break;
         }
         return $this;
