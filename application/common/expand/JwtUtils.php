@@ -40,7 +40,7 @@ final class JwtUtils
             'jwt_hash_key'  => date('Ymd', time()),
             // sub (subject)：主题
             'sub'           => 'request_token',
-            'auth_hash_key' => getUniqueCode(),
+            'auth_hash_key' => StringUtils::getUniqueCode(),
             // jti (JWT ID)：编号，jwt的唯一身份标识，主要用来作为一次性token,从而回避重放攻击。
             'jti'           => md5(uniqid('JWT', true) . time()),
         ];

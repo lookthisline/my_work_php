@@ -93,11 +93,24 @@ function clientResponse($data = [], string $message = 'success', bool $status = 
 }
 
 /**
- * 获取一个32字符长度唯一标识
- * @return String
+ * 简单无限极分类获取分类数
  */
-function getUniqueCode(): string
-{
-    $time_arr = explode(' ', microtime());
-    return substr(md5($time_arr[1] . substr($time_arr[0], 2) . mt_rand(0, 9)), 0, 30) . mt_rand(10, 99);
-}
+ function getTree($array, $pid = 0, $level = 0)
+ {
+     //声明静态数组,避免递归调用时,多次声明导致数组覆盖
+     static $list = [];
+     foreach ($array as $key => $value) {
+         //第一次遍历,找到父节点为根节点的节点 也就是pid=0的节点
+         if ($value['pid'] == $pid) {
+             //父节点为根节点的节点,级别为0，也就是第一级
+             $value['level'] = $level;
+             //把数组放到list中
+             $list[] = $value;
+             //把这个节点从数组中移除,减少后续递归消耗
+             unset($array[$key]);
+             //开始递归,查找父ID为该节点ID的节点,级别则为原级别+1
+             getTree($array, $value['id'], $level + 1);
+         }
+     }
+     return $list;
+ }

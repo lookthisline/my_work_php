@@ -16,13 +16,16 @@ final class RedisUtils
     //当前权限认证码
     private $auth = '';
 
+    /**
+     * @access private
+     */
     private function __clone()
     {
     }
 
     public function __destruct()
     {
-        return $this->redis->close();
+        $this->redis->close();
     }
 
     private function __construct(array $config)
