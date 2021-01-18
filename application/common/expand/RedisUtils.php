@@ -16,11 +16,9 @@ final class RedisUtils
     //当前权限认证码
     private $auth = '';
 
-    /**
-     * @access private
-     */
     private function __clone()
     {
+        // disable clone
     }
 
     public function __destruct()

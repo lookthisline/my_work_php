@@ -42,15 +42,14 @@ final class CUrlUtils
         curl_close($this->_cUrl);
     }
 
-    /**
-     * @access private
-     */
     private function __clone()
     {
+        // disable clone
     }
 
     /**
      * @param string $name
+     * @return mixed
      */
     public function __get(string $name)
     {
@@ -81,7 +80,8 @@ final class CUrlUtils
     }
 
     /**
-     * @param array $header
+     * @param array $header default []
+     * @return self
      */
     public function setHeader(array $header = []): self
     {
@@ -90,7 +90,7 @@ final class CUrlUtils
     }
 
     /**
-     * @param int $port
+     * @param integer $port
      * @return self
      */
     public function setPort(int $port): self
@@ -110,8 +110,9 @@ final class CUrlUtils
     }
 
     /**
-     * @param bool $is_use
+     * @param boolean $is_use
      * @param string $certificate_path
+     * @return self
      */
     public function setSslVerify(bool $is_use = true, string $certificate_path = ''): self
     {
@@ -168,7 +169,7 @@ final class CUrlUtils
     }
 
     /**
-     * @param int $second
+     * @param integer $second
      * @return self
      */
     public function setTimeOut(int $second): self
@@ -181,16 +182,17 @@ final class CUrlUtils
     /**
      * @param mixed $parameter
      * @param mixed $val
+     * @return self
      */
-    public function setOther($parameter, $val):self
+    public function setOther($parameter, $val): self
     {
         curl_setopt($this->_cUrl, $parameter, $val);
         return $this;
     }
 
     /**
-     * @param bool $require_header
-     * @return array|bool
+     * @param boolean $require_header
+     * @return string|boolean $result
      */
     public function query(bool $require_header = false)
     {
@@ -200,7 +202,7 @@ final class CUrlUtils
         $this->setOther(CURLOPT_CUSTOMREQUEST, $this->_method);
         !$this->_parameter ?: $this->setOther(CURLOPT_POSTFIELDS, $this->_parameter);
         !$require_header ?: $this->setOther(CURLOPT_HEADER, true);
-        foreach ($this->_header as $k=>$v) {
+        foreach ($this->_header as $k => $v) {
             array_push($header, $k . ':' . (string)$v);
         }
         !$header ?: $this->setOther(CURLOPT_HTTPHEADER, $header);
