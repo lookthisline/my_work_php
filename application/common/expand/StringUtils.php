@@ -47,7 +47,7 @@ class StringUtils
      * @param string $str
      * @return string
      */
-    public static function getFirstCharter(string $string):string
+    public static function getFirstCharter(string $string): string
     {
         if (!$string) {
             return '';
@@ -63,7 +63,7 @@ class StringUtils
         $ascii    = ord($s[0]) * 256 + ord($s[1]) - 65536;
 
         $char = ['A' => [-20319, -20284],'B' => [-20283, -19776],'C' => [-19775, -19219],'D' => [-19218, -18711],'E' => [-18710, -18527],'F' => [-18526, -18240],'G' => [-18239, -17923],'H' => [-17922, -17418],'J' => [-17417, -16475],'K' => [-16474, -16213],'L' => [-16212, -15641],'M' => [-15640, -15166],'N' => [-15165, -14923],'O' => [-14922, -14915],'P' => [-14914, -14631],'Q' => [-14630, -14150],'R' => [-14149, -14091],'S' => [-14090, -13319],'T' => [-13318, -12839],'W' => [-12838, -12557],'X' => [-12556, -11848],'Y' => [-11847, -11056],'Z' => [-11055, -10247]];
-        $result = static function ($ascii) use ($char) {
+        $result = function ($ascii) use ($char) {
             foreach ($char as $k=>$v) {
                 if ($ascii >= reset($v) && $ascii <= end($v)) {
                     return $k;
