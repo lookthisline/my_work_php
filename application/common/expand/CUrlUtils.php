@@ -212,9 +212,12 @@ final class CUrlUtils
         }
         if ($require_header) {
             if (curl_getinfo($this->_cUrl, CURLINFO_HTTP_CODE) == 200) {
+                /**
+                 * NOTE:
+                 * $header_size = curl_getinfo($this->_cUrl, CURLINFO_HEADER_SIZE);  // 获取header长度
+                 * $result      = substr($result, $header_size);                     // 截取掉header
+                 */
                 list($result['response_header'], $result['response_body']) = explode(PHP_EOL . PHP_EOL, $execute_result, 2);
-            // $header_size = curl_getinfo($this->_cUrl, CURLINFO_HEADER_SIZE);  // 获取header长度
-                // $result      = substr($result, $header_size);                     // 截取掉header
             } else {
                 $result = false;
             }
