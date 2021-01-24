@@ -13,7 +13,7 @@ final class PictureCompress
     private $_percent               = 0.5;
     private $_is_local_file         = true;
     private $_require_base64_string = false;
-    private static $_allow_ext      = ['.jpg', '.jpeg', '.png', '.bmp', '.wbmp', '.gif'];
+    private static $_allow_ext      = ['jpg', 'jpeg', 'png', 'bmp', 'wbmp', 'gif'];
 
     /**
      * @param string $source 源文件地址
@@ -100,8 +100,8 @@ final class PictureCompress
         if (!$save_name) {
             return false;
         }
-        $_ext        = isset(pathinfo($save_name)['extension']) ? strtolower(pathinfo($save_name)['extension']) : '';
-        $_source_ext = isset(pathinfo($this->_source)['extension']) ? strtolower(pathinfo($this->_source)['extension']) : '';
+        $_ext        = key_exists('extension', pathinfo($save_name)) ? strtolower(pathinfo($save_name)['extension']) : '';
+        $_source_ext = key_exists('extension', pathinfo($this->_source)) ? strtolower(pathinfo($this->_source)['extension']) : '';
         //有指定目标名扩展名
         if ($_ext && in_array($_ext, self::$_allow_ext)) {
             // continue
