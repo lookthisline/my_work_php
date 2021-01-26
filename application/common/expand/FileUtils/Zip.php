@@ -12,11 +12,12 @@ class Zip
 
     public function __construct()
     {
-        $this->zip = new ZipArchive;
+        $this->zip = new ZipArchive();
     }
 
     /**
      * 解压zip文件到指定文件夹
+     * BUG: 未测试
      * @access public
      * @param string $zip 压缩文件路径
      * @param string $path 压缩包解压到的目标路径
@@ -42,6 +43,7 @@ class Zip
 
     /**
      * 创建压缩文件
+     * NOTE: 已测试
      * @access public
      * @param string $zip 将要生成的压缩文件路径
      * @param string $folder 将要被压缩的文件夹路径
@@ -49,7 +51,7 @@ class Zip
      * @param boolean $require_folder
      * @return boolean 压缩包生成成功返回true 否则返回 false
      */
-    public function zip($zip, $folder, $ignored = null, bool $require_folder = true)
+    public function compress($zip, $folder, $ignored = null, bool $require_folder = true)
     {
         $this->require_folder = $require_folder;
 
@@ -62,7 +64,7 @@ class Zip
         }
         $this->ignored_names = is_array($ignored) ? $ignored : ($ignored ? array($ignored) : array());
         if ($this->zip->open($zip, ZIPARCHIVE::CREATE) !== true) {
-            throw new Exception("cannot open <$zip>\n");
+            throw new \Exception("cannot open <$zip>\n");
         }
         $folder = substr($folder, -1) == '/' ? substr($folder, 0, strlen($folder) - 1) : $folder;
         if (strstr($folder, '/')) {
@@ -75,6 +77,7 @@ class Zip
 
     /**
      * 递归添加文件到压缩包
+     * NOTE: 已测试
      * @access private
      * @param string $folder 添加到压缩包的文件夹路径
      * @param string $parent 添加到压缩包的文件夹上级路径
@@ -103,7 +106,7 @@ class Zip
 
     /**
      * 读取压缩包文件与目录列表
-     *
+     * BUG: 未测试
      * @access public
      * @param string $zip 压缩包文件
      * @return array 文件与目录列表
@@ -127,6 +130,7 @@ class Zip
 
     /**
      * 得到文件头与文件类型映射表
+     * BUG: 未测试
      * @param $bin string 文件的二进制前一段字符
      * @return boolean
      */

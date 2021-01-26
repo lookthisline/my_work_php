@@ -20,10 +20,12 @@ final class PictureCompress
      * @param float $percent 压缩比例
      * @param bool $is_local_file 是否是本地文件
      */
-    public function __construct(string $source, float $percent = 1, bool $is_local_file = true)
+    public function __construct(string $source, float $percent = 1)
     {
-        $is_local_file ?: $this->_is_local_file = $is_local_file;
-
+        // 判断是否是本地文件
+        if (filter_var($source, FILTER_VALIDATE_URL) !== false) {
+            $this->_is_local_file = false;
+        }
         $this->_source  = $this->_is_local_file ? realpath($source) : $source;
         $this->_percent = $percent;
     }
@@ -119,6 +121,11 @@ final class PictureCompress
         $this->_image && imagedestroy($this->_image);
     }
 
+    public function clean(): void
+    {
+        $this->_image && imagedestroy($this->_image);
+    }
+
     private function outputBase64String(): void
     {
         $_func = "image" . $this->_picture_info['type'];
@@ -133,4 +140,4 @@ final class PictureCompress
 $url   = 'http://img.netbian.com/file/2020/0904/dbb00a5646309df5fad6efda1079e756.jpg';
 $url_1 = 'https://yaqu-renzheng.oss-cn-beijing.aliyuncs.com/IMG_CROP_20201205_16570151.jpeg';
 $pic   = new PictureCompress($url_1, 80, false);
-$pic->action('./'.date("YmdHis"), false);
+$pic->action('./' . date("YmdHis"), false);

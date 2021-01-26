@@ -43,4 +43,23 @@ final class FileUtils
         }
         return true;
     }
+
+    public static function remove_folders($path)
+    {
+        if (is_dir($path)) {
+            $p = scandir($path);
+            if (count($p) > 2) {
+                foreach ($p as $val) {
+                    if ($val != "." && $val != "..") {
+                        if (is_dir($path . $val)) {
+                            self::remove_folders($path . $val . '/');
+                        } else {
+                            unlink($path . $val);
+                        }
+                    }
+                }
+            }
+        }
+        return rmdir($path);
+    }
 }
