@@ -44,22 +44,54 @@ final class FileUtils
         return true;
     }
 
+    /**
+     * 删除文件夹
+     */
     public static function remove_folders($path)
     {
         if (is_dir($path)) {
             $p = scandir($path);
-            if (count($p) > 2) {
-                foreach ($p as $val) {
-                    if ($val != "." && $val != "..") {
-                        if (is_dir($path . $val)) {
-                            self::remove_folders($path . $val . '/');
-                        } else {
-                            unlink($path . $val);
-                        }
-                    }
+            if (count($p) <= 2) {
+                return rmdir($path);
+            }
+            foreach ($p as $val) {
+                if (in_array($val, ['.', '..'])) {
+                    continue;
                 }
+                is_dir($path . $val) ? self::remove_folders($path . $val . '/')  : unlink($path . $val);
             }
         }
         return rmdir($path);
+    }
+
+    /**
+     * 下载文件
+     */
+    public static function download()
+    {
+        $_source = input('url/s', '', 'trim') ?: input('post.url/s', '', 'trim');
+        if (!$_source) {
+            exit(0);
+        }
+        $_is_local_file = true;
+        // 判断是否是本地文件
+        if (filter_var($_source, FILTER_VALIDATE_URL) !== false) {
+            $_is_local_file = false;
+        }
+        $_file_info = pathinfo($_source);
+        $_stream    = @fopen($_source, "rb");
+        if (!$_stream || !key_exists('basename', $_file_info) || !key_exists('extension', $_file_info)) {
+            exit(0);
+        }
+        $_content   = $_is_local_file ? $_stream : stream_get_contents($_stream);
+        $_size      = $_is_local_file ? filesize($_source) : strlen($_content);
+        $_ext       = '.' . strtolower($_file_info['extension']);
+        Header("Content-type: application/octet-stream");
+        Header("Accept-Ranges: bytes");
+        Header("Accept-Length: " . $_size);
+        Header("Content-Disposition: attachment; filename=" . date('YmdHis') . $_ext);
+        echo $_is_local_file ? fread($_content, $_size) : $_content;
+        fclose($_stream);
+        exit(0);
     }
 }
