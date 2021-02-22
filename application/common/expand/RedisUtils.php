@@ -30,8 +30,8 @@ final class RedisUtils
     {
         (!isset($config['host']) || !$config['host'] || $config['host'] == $this->host) ?: $this->host = $config['host'];
         (!isset($config['port']) || !$config['port'] || $config['port'] == $this->port) ?: $this->port = $config['port'];
-        (!isset($config['auth']) || !$config['auth']) ?: $this->auth  = $config['auth'];
-        (!isset($config['timeout']) || !$config['timeout']) ?: $this->expire_time  = time() + $config['timeout'];
+        (!isset($config['auth']) || !$config['auth']) ?: $this->auth = $config['auth'];
+        (!isset($config['timeout']) || !$config['timeout']) ?: $this->expire_time = time() + $config['timeout'];
 
         if (extension_loaded('redis') && !isset($this->redis)) {
             // [PhpRedis](https://github.com/phpredis/phpredis)
@@ -76,7 +76,7 @@ final class RedisUtils
             $instance         = new self($config);
             $instance::$db_id = $db_id;
         }
-        return static::$_instance[$k];
+        return $instance;
     }
 
     /**
