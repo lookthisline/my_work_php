@@ -46,22 +46,37 @@ final class FileUtils
 
     /**
      * 删除文件夹
+     * @param string $path
+     * @param integer $level default null
+     * @return boolean
      */
-    public static function remove_folders($path)
+    public static function remove_folders(string $path, int &$_level = null): bool
     {
-        if (is_dir($path)) {
-            $p = scandir($path);
-            if (count($p) <= 2) {
-                return rmdir($path);
+        $_path = realpath(rtrim($path, DIRECTORY_SEPARATOR)); // 获取真实地址
+        if (is_dir($_path)) {
+            $_path_list = scandir($_path); // 获取路径下文件夹（文件）列表
+            if (count($_path_list) <= 2) {
+                // 该路径列表仅包含当前路径（.）与上级路径（..）
+                return rmdir($_path);
             }
-            foreach ($p as $val) {
-                if (in_array($val, ['.', '..'])) {
+            foreach ($_path_list as $_val) {
+                if (in_array($_val, ['.', '..'])) {
+                    // 当前路劲仅包含当前路径（.）与上级路径（..）
                     continue;
                 }
-                is_dir($path . $val) ? self::remove_folders($path . $val . '/')  : unlink($path . $val);
+                // 目标路径
+                $_this_path = $_path . DIRECTORY_SEPARATOR . $_val;
+                if (is_dir($_this_path)) {
+                    $_level++;
+                    self::remove_folders($_this_path, $_level); // 继续遍历下级路劲
+                } else {
+                    unlink($_this_path); // 删除文件
+                }
             }
+        } elseif (!is_dir($_path) && !$_level) {
+            return false; // 输入参数不是合法路径参数
         }
-        return rmdir($path);
+        return rmdir($_path); // 删除指定路径
     }
 
     /**
