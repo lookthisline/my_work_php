@@ -6,7 +6,7 @@ use app\common\expand\JwtUtils;
 use app\common\expand\RedisUtils;
 use app\common\expand\Captcha\Main as CaptchaUtils;
 
-// Utils 简单工厂模式
+// Utils 简单工厂
 final class UtilsFactory
 {
     private static object $redis;
@@ -16,6 +16,7 @@ final class UtilsFactory
 
     private function __construct()
     {
+        // disable initialization
     }
 
     // /**
@@ -41,16 +42,16 @@ final class UtilsFactory
     //     return self::$instance;
     // }
 
-    public final static function redis(array $config = []): RedisUtils
+    final public static function redis(array $config = []): RedisUtils
     {
-        if (!(self::$redis instanceof RedisUtils)) {
+        if (!isset(self::$redis) || !(self::$redis instanceof RedisUtils)) {
             // self::$redis = new RedisUtils($config);
             self::$redis = RedisUtils::getInstance($config);
         }
         return self::$redis;
     }
 
-    public final static function jwt(): JwtUtils
+    final public static function jwt(): JwtUtils
     {
         if (!isset(self::$jwt)) {
             self::$jwt = new JwtUtils();
@@ -58,7 +59,7 @@ final class UtilsFactory
         return self::$jwt;
     }
 
-    public final static function captcha(array $config = []): CaptchaUtils
+    final public static function captcha(array $config = []): CaptchaUtils
     {
         if (!isset(self::$captcha)) {
             self::$captcha = new CaptchaUtils($config);
@@ -68,5 +69,6 @@ final class UtilsFactory
 
     private function __clone()
     {
+        // disable clone
     }
 }

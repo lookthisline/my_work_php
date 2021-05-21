@@ -17,8 +17,8 @@
     ],
     "require": {
         "php": ">=5.6.0",
-        "topthink/framework": "5.1.40",
-        "elasticsearch/elasticsearch": "7.10.0"
+        "elasticsearch/elasticsearch": "7.10.0",
+        "topthink/framework": "5.1.*"
     },
     "autoload": {
         "psr-4": {

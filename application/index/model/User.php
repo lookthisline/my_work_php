@@ -10,6 +10,11 @@ class User extends Model
 {
     protected $pk = 'id';
 
+    protected $user = [
+        'status'  => -4,
+        'data'    => array()
+    ];
+
     /**
      * 账户创建时间(create_time) 获取器
      * @access public
@@ -45,14 +50,37 @@ class User extends Model
     /**
      * 登录
      * @param Array $param_data
-     * @return Array|Null|\PDOStatement|String|\think\Model
      */
     public function Login(array $param_data)
     {
-        return $this->allowField(true)
-            ->field('id,account_status,nickname,user_level')
-            ->where($param_data)
-            ->find();
+        try {
+            $result = $this->where('nickname', $param_data['nickname'])
+                ->field('id,account_status,nickname,user_level')
+                ->find();
+            if (!$result) {
+                $this->user['status'] = -3;
+                return;
+            }
+            switch ($result) {
+                case (string)$result->value('passwd') !== (string)$param_data['passwd']:
+                    $this->user['status'] = -1;
+                    break;
+                case $result->account_status < 0:
+                    $this->user['status'] = -2;
+                    break;
+                case $result->account_status == 0:
+                    $this->user['status'] = 0;
+                    break;
+                default:
+                    $this->user['status'] = 1;
+                    $this->user['data']   = $result->toArray();
+                    break;
+            }
+        } catch (\Exception $e) {
+            Log::write($e->getMessage(), 'error');
+        } finally {
+            return $this->user;
+        }
     }
 
     /**

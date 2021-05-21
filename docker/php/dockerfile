@@ -1,7 +1,6 @@
-FROM php:7.4.12-fpm
+FROM php:7.4-fpm
 LABEL maintainer="liujiawen.personal@outlook.com"
-COPY ./php.sh /php.sh
+COPY ./php.sh /
+COPY ./redis-5.3.4(php-ext).tar.gz /tmp/
 RUN chmod +x /php.sh && /php.sh
 RUN rm -rf /php.sh
-# 解决容器内外权限不一致的问题
-# RUN usermod -u 1001 www-data && groupmod -g 1001 www-data

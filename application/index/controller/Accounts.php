@@ -6,6 +6,7 @@ use think\Request;
 use think\facade\Config;
 use app\common\base\BaseController;
 use app\index\model\User as UserModel;
+use app\common\enum\Model\User as UserEnum;
 
 class Accounts extends BaseController
 {
@@ -24,19 +25,13 @@ class Accounts extends BaseController
         ];
 
         $user_model = new UserModel();
-        $result = $user_model->Login($param_data);
-
-        if ($result) {
-            $result = $result->toArray();
-            if ($result['account_status'] < 0) {
-                return clientResponse(null, '用户正在等待审核中', false);
-            }
+        $user       = $user_model->Login($param_data);
+        if ($user['status'] > 0) {
             // 生成 jwt
-            $token =  $this->buildToken([], $result);
-            return clientResponse(array_merge($result, ['token' => $token]), '登录成功');
-        } else {
-            return clientResponse(null, '用户名或密码输入错误，请稍后再试', false);
+            $token = $this->buildToken([], $user['data']);
+            $user['data'] = array_merge($user['data'], ['token' => $token]);
         }
+        return clientResponse($user['data'], UserEnum::USER_STATUS[$user['status']], $user['status'] > 0);
     }
 
     /**

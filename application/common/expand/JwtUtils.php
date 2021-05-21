@@ -5,13 +5,12 @@ namespace app\common\expand;
 final class JwtUtils
 {
     protected static array $payload;
+    private static string $key;
 
     private static array $header = [
         'algo' => 'sha256',
-        'typ' => 'JWT'
+        'typ'  => 'JWT'
     ];
-
-    private static string $key;
 
     public function __construct()
     {

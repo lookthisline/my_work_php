@@ -14,7 +14,7 @@
 // +----------------------------------------------------------------------
 
 return [
-    'jwt_key' => 123456,
+    'jwt_key'                => 123456,
     // 应用名称
     'app_name'               => 'my_work',
     // 应用地址
@@ -100,7 +100,7 @@ return [
     // 是否强制使用路由
     'url_route_must'         => true,
     // 合并路由规则
-    'route_rule_merge'       => false,
+    'route_rule_merge'       => true,
     // 路由是否完全匹配
     'route_complete_match'   => false,
     // 使用注解路由

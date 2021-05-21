@@ -1,49 +1,72 @@
+# NOTE: <https://docs.docker.com/compose/compose-file/compose-file-v3/>
 version: "2"
 services:
   php:
     build:
-      context: ./php
-      dockerfile: ./php/dockerfile
+      context: php
+    #   dockerfile: ./php/dockerfile
     container_name: php
     restart: on-failure:5
-    mem_limit: 1024m
+    mem_limit: 256m
+    # NOTE: version 3
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 256m
+    working_dir: /var/www
+    user: 1000:1000
     volumes:
-      - /var/www:/var/www
+      - /home/susy/MyWork:/var/www
       - /etc/localtime:/etc/localtime:ro
     network_mode: host
   mysql:
     image: mysql:5.7
     container_name: mysql
     restart: on-failure:5
-    mem_limit: 1024m
+    mem_limit: 512m
+    # NOTE: version 3
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 512m
     volumes:
-      - /var/www/conf/docker-mysql/my.cnf:/etc/mysql/my.cnf:rw
-      - /var/www/logs/docker-mysql:/var/log/mysql
-      # - /var/www/data/docker-mysql:/var/lib/mysql
+      - /home/susy/MyWork/conf/docker-mysql:/etc/mysql:rw
+      - /home/susy/MyWork/logs/docker-mysql:/var/log/mysql:rw
+      - /home/susy/MyWork/data/docker-mysql:/var/lib/mysql:rw
       - /etc/localtime:/etc/localtime:ro
     network_mode: host
     environment:
       MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_ROOT_HOST: "localhost"
   redis:
     image: redis:5.0
     container_name: redis
     restart: on-failure:5
-    mem_limit: 1024m
+    mem_limit: 256m
+    # NOTE: version 3
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 256m
+    command: redis-server /etc/redis/redis.conf --protected-mode yes
     volumes:
-      # - /var/www/conf/docker-redis/redis.conf:/etc/redis/redis.conf:rw
-      # - /var/www/data/docker-redis/data:/data
+      - ./redis/redis.conf:/etc/redis/redis.conf:rw
+      - /home/susy/MyWork/data/docker-redis:/data:rw
       - /etc/localtime:/etc/localtime:ro
     network_mode: host
   nginx:
-    build:
-      context: ./nginx
-      dockerfile: ./nginx/dockerfile
+    image: nginx:latest
     container_name: nginx
     restart: on-failure:5
-    mem_limit: 1024m
+    mem_limit: 256m
+    # NOTE: version 3
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 256m
     volumes:
-      - /var/www:/var/www
-      # - /var/www/conf/docker-nginx/nginx.conf:/etc/nginx/nginx.conf:rw
-      # - /var/www/conf/docker-nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf:rw
+      - /home/susy/MyWork:/var/www:rw
+      - /home/susy/MyWork/conf/docker-nginx:/etc/nginx:rw
+      - /home/susy/MyWork/logs/docker-nginx:/var/log/nginx/:rw
       - /etc/localtime:/etc/localtime:ro
     network_mode: host

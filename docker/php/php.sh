@@ -2,12 +2,11 @@
 
 # 安装 PhpRedis
 mkdir -p /usr/src/php/ext/redis && \
-curl -L -o /tmp/redis.tar.gz https://github.com/phpredis/phpredis/archive/5.3.2.tar.gz && \
-tar -zxf /tmp/redis.tar.gz && \
-mv phpredis-5.3.2/* /usr/src/php/ext/redis && \
-rm -r /tmp/*
-
-cd /usr/local/bin
+# curl -L -o /tmp/redis.tar.gz https://github.com/phpredis/phpredis/archive/5.3.2.tar.gz && \
+# tar -zxf /tmp/redis.tar.gz && \
+tar -zxf /tmp/redis-5.3.4\(php-ext\).tar.gz && \
+mv redis-5.3.4/* /usr/src/php/ext/redis && \
+rm -r /tmp/redis*
 
 cat >> /etc/apt/sources.list <<EOF
 deb http://mirrors.163.com/debian/ stretch main non-free contrib

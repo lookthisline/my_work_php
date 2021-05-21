@@ -9,6 +9,7 @@ class StringUtils
 {
     /**
      * 获取一个32字符长度唯一标识
+     * todo: 将来尝试改换Twitter的雪花算法
      * @return String
      */
     public static function getUniqueCode(): string

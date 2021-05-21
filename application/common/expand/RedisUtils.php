@@ -7,13 +7,12 @@ final class RedisUtils
     private static $_instance;
     private static $k;
     private $redis;
-    // 重连间隔时间
     private $expire_time = 60;
     private $host        = 'localhost';
     private $port        = '6379';
-    //当前数据库ID号
+    // 当前数据库ID号
     private static $db_id = 0;
-    //当前权限认证码
+    // 当前权限认证码
     private $auth = '';
 
     private function __clone()
@@ -38,9 +37,9 @@ final class RedisUtils
             $this->redis = new \Redis();
             // 长连接；依赖于 php-fpm 进程，php-fpm进程不死，redis connect 就一直存在，直到空闲超时自动断开
             if (isset($config['persistent']) && $config['persistent']) {
-                $this->redis->pconnect($this->host, $this->port, $config['timeout'], 'persistent_id_' . self::$db_id);
+                $this->redis->pconnect($this->host, $this->port, $this->expire_time, 'persistent_id_' . self::$db_id);
             } else {
-                $this->redis->connect($this->host, $this->port, $config['timeout']);
+                $this->redis->connect($this->host, $this->port, $this->expire_time);
             }
         } elseif (class_exists('\\Predis\\Client') && !isset($this->redis)) {
             // [predis](https://github.com/predis/predis)
@@ -117,19 +116,19 @@ final class RedisUtils
             case -1:
                 // 存在 key 但没有设置剩余过期时间
                 $this->expire($key, $seconds);
-                $code = -1;
-                // no break
+                $code = $remain_time;
+                break;
             case -2:
                 // 不存在 key
                 $code = -2;
-                // no break
-            case $remain_time < ($seconds * (2 / 3)):
-                // 剩余时间小于给定时间的 2/3
+                break;
+            case $remain_time <= ($seconds * (2 / 3)):
+                // 剩余时间小于等于给定时间的 2/3
                 $this->expire($key, $seconds);
-                $code = 1;
-                // no break
+                break;
             default:
-                $code = 1;
+                // don't need set default
+                break;
         }
         return $code;
     }
