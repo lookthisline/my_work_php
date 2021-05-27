@@ -136,9 +136,7 @@ class Zip
      */
     private function getTypeList($bin)
     {
-        $array = array(
-            array("504B0304", "zip")
-        );
+        $array = [['504B0304', 'zip']];
         foreach ($array as $v) {
             $bin_length = strlen(pack("H*", $v[0]));             // 得到文件头标记字节数
             $tbin       = substr($bin, 0, intval($bin_length));  // 需要比较文件头长度
