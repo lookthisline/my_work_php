@@ -19,4 +19,7 @@ class Redis
     const CAPTCHA_FOLDER    = 'captcha:';
     // 验证码保存期限 单位秒
     const CAPTCHA_LIFECYCLE = 60;
+
+    // 文件流文件夹
+    const DOCUMENT_FOLDER   = 'document:';
 }

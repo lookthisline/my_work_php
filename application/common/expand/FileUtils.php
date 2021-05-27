@@ -3,9 +3,16 @@
 namespace app\common\expand;
 
 use think\File;
+use app\common\enum\Redis;
 
 final class FileUtils
 {
+    private static $block_size = 4096; // byte
+    private static $max_size = 5 * 1024 * 1024; // mb
+    private static $hash_mode = 'sha256'; // 获取文件的hash模式
+    private static $expire_time = 7 * 24 * 60 * 60; // 文件过期时间
+
+
     /**
      * 上传文件（移动文件，返回文件存储地址）
      * @param FILE $file
@@ -77,6 +84,80 @@ final class FileUtils
             return false; // 输入参数不是合法路径参数
         }
         return rmdir($_path); // 删除指定路径
+    }
+
+    /**
+     * 作为热文件加速时使用，大文件需修改文件块大小，或是多种服务端间数据互通的方式
+     * @param string $path
+     * @param string $sum
+     */
+    public function blob(string $path = '', string $sum = '')
+    {
+        // ini_set('memory_limit', '1G'); // test
+        if (filter_var($path, FILTER_VALIDATE_URL) !== false) {
+            // 判断是否是本地文件
+            return false;
+        }
+        $path = realpath($path); // 获取文件在服务器的绝对路径
+        if (!file_exists($path) && is_readable($path)) {
+            // 判断文件是否存在，是否可读
+            return false;
+        }
+        $file_size = filesize($path);
+        if ($file_size > self::$max_size) {
+            // 判断文件大小，过大不读
+            return false;
+        }
+        $file_stream = null;
+        if (!$sum) {
+            // 读取文件流
+            $file_stream = file_get_contents($path);
+            $sum         = hash(self::$hash_mode, $file_stream);
+        }
+        $redis_key   = Redis::DOCUMENT_FOLDER . $sum;
+        $redis_utils = UtilsFactory::redis();
+        $redis_len   = $redis_utils->llen($redis_key);
+        $i           = 0;
+        // 通过比较在指定块大小时文件块数量判断重复性，判断错误几率较小
+        while ($redis_len && ceil($file_size / self::$block_size) !== $redis_len) {
+            // BUG: 为hash值增加序号（数据表设置文件hash值字段应设置冗余长度）
+            $redis_len = $redis_utils->llen($redis_key . "_" . ++$i);
+        }
+        !$i ?: $redis_key .= "_" . $i;
+        if ($redis_len) {
+            // 从redis尝试读取信息
+            $file_stream = $redis_utils->lrange($redis_key, 0, -1);
+            $redis_utils->RefreshExpireTime($redis_key, self::$expire_time);
+            if ($file_stream && is_array($file_stream)) {
+                $file_stream = implode('', $file_stream);
+            }
+        } else {
+            // redis不存在该文件
+            $file_stream = file_get_contents($path);
+            // NOTE: 存放二进制字符串切片的大型数组（过大的数据存入一个变量可能导致内存溢出，小文件时执行应该快）
+            // $package = str_split($file_stream, self::$block_size);
+            // // 存入redis
+            // $redis_utils->pipeline()
+            //     ->rpush($redis_key, ...$package)
+            //     ->expire($redis_key, self::$expire_time)
+            //     ->exec();
+            // NOTE: 不使用数组，只循环写入（应该能避免大数组内存溢出，大文件时执行比数组快）
+            $i = 0;
+            $pipeline = $redis_utils->pipeline();
+            while ($file_size >= $i) {
+                $pipeline->rpush($redis_key, substr($file_stream, $i, self::$block_size));
+                $i += self::$block_size;
+            }
+            $pipeline->expire($redis_key, self::$expire_time)
+                ->exec();
+        }
+        // header('Content-type:image/png');
+        // Header("Content-type: application/octet-stream");
+        // Header("Accept-Ranges: bytes");
+        // Header("Accept-Length: " . $file_size);
+        // 输出文件流
+        return $file_stream;
+        // exit(0);
     }
 
     /**

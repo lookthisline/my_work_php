@@ -197,16 +197,16 @@ class BaseController extends \think\Controller
      * @param Integer $user_id
      * @return \think\response\Json|Void
      */
-    public final function verifyUser(int $user_id)
+    protected final function verifyUser(int $user_id)
     {
         $result = Db::name('user')->where('id', $user_id)->find();
-        switch ($result) {
-            case empty($result):
-                // 无效登录信息，请重新登录
-                return clientResponse(null, '无效凭证信息，请重新登录', false);
-            case $result['account_status'] == -1;
-                // 审核状态(-1 待审核，1 正常用户)
-                return clientResponse(null, '账户正在审核中，请等待审核完成', false);
+        if (!$result) {
+            // 无效登录信息，请重新登录
+            return clientResponse(null, '无效凭证信息，请重新登录', false);
+        } elseif ($result['account_status'] == -1) {
+
+            // 审核状态(-1 待审核，1 正常用户)
+            return clientResponse(null, '账户正在审核中，请等待审核完成', false);
         }
     }
 
