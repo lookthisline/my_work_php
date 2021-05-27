@@ -12,6 +12,7 @@ final class UtilsFactory
     private static object $redis;
     private static object $jwt;
     private static object $captcha;
+    private static object $file;
     // private static object $instance;
 
     private function __construct()
@@ -53,7 +54,7 @@ final class UtilsFactory
 
     final public static function jwt(): JwtUtils
     {
-        if (!isset(self::$jwt)) {
+        if (!isset(self::$jwt) || !(self::$jwt instanceof JwtUtils)) {
             self::$jwt = new JwtUtils();
         }
         return self::$jwt;
@@ -61,10 +62,18 @@ final class UtilsFactory
 
     final public static function captcha(array $config = []): CaptchaUtils
     {
-        if (!isset(self::$captcha)) {
+        if (!isset(self::$captcha) || !(self::$captcha instanceof CaptchaUtils)) {
             self::$captcha = new CaptchaUtils($config);
         }
         return self::$captcha;
+    }
+
+    final public static function file(): FileUtils
+    {
+        if (!isset(self::$file) || !(self::$file instanceof FileUtils)) {
+            self::$file = new FileUtils();
+        }
+        return self::$file;
     }
 
     private function __clone()
