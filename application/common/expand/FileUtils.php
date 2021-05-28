@@ -96,7 +96,8 @@ final class FileUtils
             return false;
         }
         $file_stream = null;
-        if ($path && !$sum) {
+        $file_size   = null;
+        if (($path && !$sum) || ($path && $sum)) {
             // ini_set('memory_limit', '1G'); // test
             if (filter_var($path, FILTER_VALIDATE_URL) !== false) {
                 // 判断是否是本地文件
@@ -107,21 +108,21 @@ final class FileUtils
                 // 判断文件是否存在，是否可读
                 return false;
             }
-            $file_size = filesize($path);
-            if ($file_size > self::$max_size) {
-                // 判断文件大小，过大不读
+            $file_size = filesize($path); // 32位系统不能大于2G
+            if ($file_size > self::$max_size || $file_size <= 0) {
+                // 判断文件大小，过大不读；小于等于0无意义数据不读
                 return false;
             }
             // 读取文件流
             $file_stream = file_get_contents($path);
-            $sum         = hash(self::$hash_mode, $file_stream);
+            $sum         = hash(self::$hash_mode, $file_stream); // 两个hash串时，用从文件读的覆盖传入的
         }
         $i           = 0;
         $redis_key   = Redis::DOCUMENT_FOLDER . $sum;
         $redis_utils = UtilsFactory::redis();
-        $redis_len   = $redis_utils->llen($redis_key);
+        $redis_len   = $redis_utils->llen($redis_key); // redis key(list type)的长度
         // 通过比较在指定块大小时文件块数量判断重复性，判断错误几率较小
-        while ($redis_len && ceil($file_size / self::$block_size) !== $redis_len) {
+        while ($redis_len && !is_null($file_size) && (int)ceil($file_size / self::$block_size) !== (int)$redis_len) {
             // BUG: 为hash值增加序号（数据表设置文件hash值字段应设置冗余长度）
             $redis_len = $redis_utils->llen($redis_key . "_" . ++$i);
         }
@@ -133,6 +134,10 @@ final class FileUtils
             if ($file_stream && is_array($file_stream)) {
                 $file_stream = implode('', $file_stream);
             }
+        }
+        if (!$redis_len && !$path) {
+            // redis缓存过期或错误hash串导致无法查询到数据
+            return false;
         } else {
             // redis不存在该文件
             $file_stream = file_get_contents($path);
@@ -153,13 +158,14 @@ final class FileUtils
             $pipeline->expire($redis_key, self::$expire_time)
                 ->exec();
         }
-        // header('Content-type:image/png');
-        // Header("Content-type: application/octet-stream");
-        // Header("Accept-Ranges: bytes");
-        // Header("Accept-Length: " . $file_size);
-        // 输出文件流
-        return $file_stream;
-        // exit(0);
+        // 响应给前端文件流，前端使用URL.createObjectURL()读取响应的二进制数据生成资源地址，响应头基本上什么都行
+        return (new \think\Response($file_stream, 200, [
+            'Content-type'                => 'application/octet-stream',
+            'Access-Control-Allow-Origin' => request()->header('origin'),
+            'Accept-Ranges'               => 'bytes',
+            'Accept-Length'               => $file_size
+        ]))
+            ->send();
     }
 
     /**

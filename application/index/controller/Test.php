@@ -7,28 +7,14 @@ use think\Controller;
 use think\Request;
 use think\db\Where;
 use app\common\expand\FileUtils;
+use app\common\expand\UtilsFactory;
 
 // class Test extends Controller
 class Test extends BaseController
 {
-    private static array $cb;
-    public function testBbc()
+    public function index()
     {
-        // self::$cb = [];
-        // echo phpinfo();
-        // $validate = new \app\index\validate\Test;
-        // $result   = $validate->scene(__FUNCTION__)->check(request()->param());
-        // var_dump($result, $validate->getError());
-        var_dump(config('cache.file'));
-    }
-
-    public function testBbd(Request $request)
-    {
-        // var_dump(FileUtils::delete(), __PUBLIC__);
-        // echo rtrim('test', DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-        // var_dump(file_exists('router.php'));
-        $a = '/sr/as';
-        echo ltrim($a,DIRECTORY_SEPARATOR);
-        // echo 23;
+        $file_utils = UtilsFactory::file();
+        $file_utils->blob('static/images/avatar.png');
     }
 }

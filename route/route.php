@@ -28,8 +28,5 @@ return [
         // 删除用户
         ':delete_id'  => ['index/accounts/delete', ['method' => 'delete|options'], ['delete_id' => '\d+']]
     ],
-    '[test]' => [
-        'test1'     => ['index/test/testBbc', ['method' => 'get|options', 'middleware' => ['Test'], 'cross_domain' => true]],
-        'test2' => ['index/test/testBbd', ['method' => 'post|options', 'middleware' => ['Test']]],
-    ],
+    'test' => 'index/test/index'
 ];
