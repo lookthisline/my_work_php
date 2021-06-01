@@ -21,7 +21,7 @@ class BaseController extends \think\Controller
      * @access public
      * @return \think\response\Json|Void
      */
-    public final function initialize()
+    final public function initialize()
     {
         // 响应 OPTIONS 请求
         if (strtoupper(request()->method()) === "OPTIONS") {
@@ -107,7 +107,7 @@ class BaseController extends \think\Controller
 
         // 验证有效性，是否过期
         if (!$token_data) {
-            return clientResponse(null, '请求参数不可解析，访问异常！');
+            return clientResponse(null, '请求参数不可解析，访问异常！', false);
         }
 
         // 查询是否为系统生成的 jwt_token（查询存储jwt文件夹中是否存在 token）
@@ -167,26 +167,26 @@ class BaseController extends \think\Controller
      * @param Array $user_data
      * @return String
      */
-    protected final function buildToken(array $payload = [], array $user_data = []): string
+    final protected function buildToken(array $payload = [], array $user_data = []): string
     {
-        // 生成 token 字符串
-        $token_str = $this->jwt_utils->buildToken($payload);
-
+        $token_str      = $this->jwt_utils->buildToken($payload);                            // 生成 token 字符串
+        $pipeline       = $this->redis_utils->pipeline();                                    // redis pipeline（管道）将多次命令一次发送
+        $reids_jwt_key  = RedisEnum::JWT_FOLDER . (string)$this->jwt_utils->jwt_hash_key;
+        $reids_user_key = RedisEnum::USER_FOLDER . (string)$this->jwt_utils->auth_hash_key;
         // 存入 redis；jwt 部分
-        $this->redis_utils::hset(RedisEnum::JWT_FOLDER . (string)$this->jwt_utils->jwt_hash_key, (string)$this->jwt_utils->jti, $token_str);
-
+        $pipeline->hset($reids_jwt_key, (string)$this->jwt_utils->jti, $token_str);
         // 存入 redis；用户信息 部分
         if (!empty($user_data)) {
             foreach ($user_data as $k => $v) {
-                $this->redis_utils::hset(RedisEnum::USER_FOLDER . (string)$this->jwt_utils->auth_hash_key, (string)$k, (string)$v);
+                $pipeline->hset($reids_user_key, (string)$k, (string)$v);
             }
         } else {
-            $this->redis_utils::hset(RedisEnum::USER_FOLDER . (string)$this->jwt_utils->auth_hash_key, '', '');
+            $pipeline->hset($reids_user_key, '', '');
         }
-
+        $pipeline->exec();
         // 刷新过期时间（确保在覆盖的是旧数据时能再用）
-        $this->redis_utils->RefreshExpireTime(RedisEnum::JWT_FOLDER . (string)$this->jwt_utils->jwt_hash_key, RedisEnum::JWT_LIFECYCLE);
-        $this->redis_utils->RefreshExpireTime(RedisEnum::USER_FOLDER . (string)$this->jwt_utils->auth_hash_key, RedisEnum::JWT_LIFECYCLE);
+        $this->redis_utils->RefreshExpireTime($reids_jwt_key, RedisEnum::JWT_LIFECYCLE);
+        $this->redis_utils->RefreshExpireTime($reids_user_key, RedisEnum::JWT_LIFECYCLE);
 
         return $token_str;
     }
@@ -197,7 +197,7 @@ class BaseController extends \think\Controller
      * @param Integer $user_id
      * @return \think\response\Json|Void
      */
-    protected final function verifyUser(int $user_id)
+    final protected function verifyUser(int $user_id)
     {
         $result = Db::name('user')->where('id', $user_id)->find();
         if (!$result) {
@@ -216,7 +216,7 @@ class BaseController extends \think\Controller
      * @param Integer $lv 用户级别(当前系统中 1 超管, 2 普管, 3 用户)
      * @return Boolean
      */
-    protected final function decidePrivilege(int $lv): bool
+    final protected function decidePrivilege(int $lv): bool
     {
         return empty($this->user) or (!isset($this->user['user_level']) ? false : (int)$this->user['user_level'] > $lv);
     }

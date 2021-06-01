@@ -169,7 +169,7 @@ class Accounts extends BaseController
         $user_model = new UserModel();
         $result     = $user_model->auditUsers($request->put('id/d', 0));
 
-        return $result ? clientResponse($result) : clientResponse(null, '操作失败，请检查参数稍后重试');
+        return $result ? clientResponse($result) : clientResponse(null, '操作失败，请检查参数稍后重试', false);
     }
 
     /**
@@ -190,6 +190,6 @@ class Accounts extends BaseController
         $user_model = new UserModel();
         $result     = $user_model->deleteUser($request->delete('id/d', 0));
 
-        return $result ? clientResponse($result) : clientResponse(null, '操作失败，请稍后再试');
+        return $result ? clientResponse($result) : clientResponse(null, '操作失败，请稍后再试', false);
     }
 }

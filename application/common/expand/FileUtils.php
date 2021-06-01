@@ -87,6 +87,7 @@ final class FileUtils
 
     /**
      * 作为热文件加速时使用，大文件需修改文件块大小，或是多种服务端间数据互通的方式
+     * 直接响应文件流给前端使用，防止客户端获得文件源地址，防盗链
      * @param string $path
      * @param string $sum
      */
@@ -95,8 +96,8 @@ final class FileUtils
         if (!$path && !$sum) {
             return false;
         }
-        $file_stream = null;
-        $file_size   = null;
+        $file_stream = null; // default value
+        $file_size   = null; // default value
         if (($path && !$sum) || ($path && $sum)) {
             // ini_set('memory_limit', '1G'); // test
             if (filter_var($path, FILTER_VALIDATE_URL) !== false) {
@@ -108,7 +109,7 @@ final class FileUtils
                 // 判断文件是否存在，是否可读
                 return false;
             }
-            $file_size = filesize($path); // 32位系统不能大于2G
+            $file_size = (int)filesize($path); // 32位系统不能大于2G
             if ($file_size > self::$max_size || $file_size <= 0) {
                 // 判断文件大小，过大不读；小于等于0无意义数据不读
                 return false;
@@ -117,45 +118,45 @@ final class FileUtils
             $file_stream = file_get_contents($path);
             $sum         = hash(self::$hash_mode, $file_stream); // 两个hash串时，用从文件读的覆盖传入的
         }
-        $i           = 0;
-        $redis_key   = Redis::DOCUMENT_FOLDER . $sum;
-        $redis_utils = UtilsFactory::redis();
-        $redis_len   = $redis_utils->llen($redis_key); // redis key(list type)的长度
+        $i                 = 0;
+        $redis_list_key    = Redis::DOCUMENT_FOLDER . $sum;
+        $redis_instance    = UtilsFactory::redis();
+        $redis_list_length = $redis_instance->llen($redis_list_key); // redis key(list type)的长度
         // 通过比较在指定块大小时文件块数量判断重复性，判断错误几率较小
-        while ($redis_len && !is_null($file_size) && (int)ceil($file_size / self::$block_size) !== (int)$redis_len) {
+        while ($redis_list_length && !is_null($file_size) && (int)ceil($file_size / self::$block_size) !== (int)$redis_list_length) {
             // BUG: 为hash值增加序号（数据表设置文件hash值字段应设置冗余长度）
-            $redis_len = $redis_utils->llen($redis_key . "_" . ++$i);
+            $redis_list_length = $redis_instance->llen($redis_list_key . "_" . ++$i);
         }
-        !$i ?: $redis_key .= "_" . $i;
-        if ($redis_len) {
+        !$i ?: $redis_list_key .= "_" . $i;
+        if ($redis_list_length) {
             // 从redis尝试读取信息
-            $file_stream = $redis_utils->lrange($redis_key, 0, -1);
-            $redis_utils->RefreshExpireTime($redis_key, self::$expire_time);
+            $file_stream = $redis_instance->lrange($redis_list_key, 0, -1);
+            $redis_instance->RefreshExpireTime($redis_list_key, self::$expire_time);
             if ($file_stream && is_array($file_stream)) {
                 $file_stream = implode('', $file_stream);
             }
         }
-        if (!$redis_len && !$path) {
+        if (!$redis_list_length && !$path) {
             // redis缓存过期或错误hash串导致无法查询到数据
             return false;
         } else {
             // redis不存在该文件
-            $file_stream = file_get_contents($path);
+            !is_null($file_stream) ?: $file_stream = file_get_contents($path);
             // NOTE: 存放二进制字符串切片的大型数组（过大的数据存入一个变量可能导致内存溢出，小文件时执行应该快）
             // $package = str_split($file_stream, self::$block_size);
             // // 存入redis
-            // $redis_utils->pipeline()
-            //     ->rpush($redis_key, ...$package)
-            //     ->expire($redis_key, self::$expire_time)
+            // $redis_instance->pipeline()
+            //     ->rpush($redis_list_key, ...$package)
+            //     ->expire($redis_list_key, self::$expire_time)
             //     ->exec();
             // NOTE: 不使用数组，只循环写入（应该能避免大数组内存溢出，大文件时执行比数组快）
-            $i        = 0;
-            $pipeline = $redis_utils->pipeline();
+            $i              = 0;
+            $redis_pipeline = $redis_instance->pipeline();
             while ($file_size >= $i) {
-                $pipeline->rpush($redis_key, substr($file_stream, $i, self::$block_size));
+                $redis_pipeline->rpush($redis_list_key, substr($file_stream, $i, self::$block_size));
                 $i += self::$block_size;
             }
-            $pipeline->expire($redis_key, self::$expire_time)
+            $redis_pipeline->expire($redis_list_key, self::$expire_time)
                 ->exec();
         }
         // 响应给前端文件流，前端使用URL.createObjectURL()读取响应的二进制数据生成资源地址，响应头基本上什么都行

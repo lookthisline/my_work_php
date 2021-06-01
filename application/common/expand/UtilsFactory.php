@@ -46,7 +46,6 @@ final class UtilsFactory
     final public static function redis(array $config = []): RedisUtils
     {
         if (!isset(self::$redis) || !(self::$redis instanceof RedisUtils)) {
-            // self::$redis = new RedisUtils($config);
             self::$redis = RedisUtils::getInstance($config);
         }
         return self::$redis;
