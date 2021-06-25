@@ -80,9 +80,9 @@ final class RedisUtils
 
     /**
      * @access public
-     * @param String $method_name
-     * @param Mixed $arguments
-     * @return Mixed
+     * @param string $method_name
+     * @param mixed $arguments
+     * @return mixed
      */
     public static function __callStatic($method_name, $arguments)
     {
@@ -91,9 +91,9 @@ final class RedisUtils
 
     /**
      * @access public
-     * @param String $method_name
-     * @param Mixed $arguments
-     * @return Mixed
+     * @param string $method_name
+     * @param mixed $arguments
+     * @return mixed
      */
     public function __call($method_name, $arguments)
     {
@@ -103,11 +103,11 @@ final class RedisUtils
     /**
      * 刷新过期时间
      * @access public
-     * @param String $key
-     * @param Integer $seconds
-     * @return Integer $code
+     * @param string $key
+     * @param integer $seconds
+     * @return integer $code
      */
-    public function RefreshExpireTime(String $key, int $seconds): int
+    public function RefreshExpireTime(string $key, int $seconds): int
     {
         // 剩余时间
         $remain_time = $this->ttl($key);
@@ -197,7 +197,7 @@ final class RedisUtils
         return $this->port;
     }
 
-    public function getConfig()
+    public function getConfig(): array
     {
         return [
             'host' => $this->host,
@@ -208,8 +208,8 @@ final class RedisUtils
 
     /**
      * 得到一组的 hash 数据的值
-     * @param String $prefix
-     * @param String|Array $ids
+     * @param string $prefix
+     * @param string|array $ids
      */
     public function hashAll(string $prefix, $ids)
     {
@@ -232,8 +232,8 @@ final class RedisUtils
 
     /**
      * 得到条批量删除key的命令
-     * @param String $keys
-     * @param Integer|String $db_id
+     * @param string $keys
+     * @param integer|string $db_id
      */
     public function delKeys(string $keys, $db_id = 0): string
     {

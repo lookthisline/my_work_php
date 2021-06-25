@@ -3,9 +3,9 @@
 namespace app\common\enum;
 
 /**
- * Redis 表对应关系枚举类
+ * Redis 表对应关系枚举类（存放于配置文件也行）
  */
-class Redis
+final class Redis
 {
     // 用户信息文件夹
     const USER_FOLDER       = 'user:';
@@ -22,4 +22,11 @@ class Redis
 
     // 文件流文件夹
     const DOCUMENT_FOLDER   = 'document:';
+
+    private const RESTRICT  = 'restrict:';
+
+    const FEATURE_FOLDER    = self::RESTRICT . 'feature:';
+
+    // 令牌桶文件夹
+    const BUCKET_FOLDER     = self::RESTRICT . 'bucket:';
 }

@@ -66,7 +66,7 @@ class Accounts extends BaseValidate
     /**
      * 登录(login) 验证场景重写
      * @access public
-     * @return Self
+     * @return self
      */
     public function sceneLogin(): self
     {
@@ -78,7 +78,7 @@ class Accounts extends BaseValidate
     /**
      * 注册(signUp) 验证场景重写
      * @access public
-     * @return Self
+     * @return self
      */
     public function sceneSignUp(): self
     {
@@ -104,10 +104,10 @@ class Accounts extends BaseValidate
      * 1704 1707 1708 1709
      * 1710 1711 1712 1713 1714 1715 1716 1717 1718 1719
      * @access protected
-     * @param String $value
-     * @return Boolean
+     * @param string $value
+     * @return boolean
      */
-    protected function virtualNumber(String $value): Bool
+    protected function virtualNumber(string $value): bool
     {
         return (bool)preg_match('/^1(6[257]|7[01])\d{8}$/', $value) ? false : true;
     }
@@ -115,12 +115,12 @@ class Accounts extends BaseValidate
     /**
      * 验证码校验
      * @access protected
-     * @param String $value
-     * @param String $rule
-     * @param Array $data
-     * @return Boolean
+     * @param string $value
+     * @param string $rule
+     * @param array  $data
+     * @return boolean
      */
-    protected function checkCode(String $value, String $rule, array $data): Bool
+    protected function checkCode(string $value, string $rule, array $data): bool
     {
         return (new CaptchaUtils)->check($value, array_key_exists('captcha_id', $data) ? $data['captcha_id'] : '');
     }

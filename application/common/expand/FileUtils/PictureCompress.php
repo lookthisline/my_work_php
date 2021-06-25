@@ -1,6 +1,6 @@
 <?php
 
-// namespace app\common\expand;
+namespace app\common\expand\FileUtils;
 
 /**
  * 图片压缩
@@ -17,8 +17,8 @@ final class PictureCompress
 
     /**
      * @param string $source 源文件地址
-     * @param float $percent 压缩比例
-     * @param bool $is_local_file 是否是本地文件
+     * @param float  $percent 压缩比例
+     * @param bool   $is_local_file 是否是本地文件
      */
     public function __construct(string $source, float $percent = 1)
     {
@@ -32,7 +32,7 @@ final class PictureCompress
 
     /**
      * @param string $save_name 提供图片名（可不带扩展名，用源图扩展名）用于保存。或不提供文件名直接显示
-     * @param bool $require_base64_string 是否需要base64字符串
+     * @param bool   $require_base64_string 是否需要base64字符串
      */
     public function action(string $save_name = '', bool $require_base64_string = false)
     {
@@ -137,6 +137,3 @@ final class PictureCompress
         exit(0);
     }
 }
-$url = 'http://img.netbian.com/file/2020/0904/dbb00a5646309df5fad6efda1079e756.jpg';
-$pic = new PictureCompress($url_1, 80, false);
-$pic->action('./' . date("YmdHis"), false);

@@ -54,7 +54,7 @@ class Main
 
     /**
      * @access public
-     * @param  Array $config 配置参数
+     * @param  array $config 配置参数
      */
     public function __construct(array $config = [])
     {
@@ -67,11 +67,11 @@ class Main
     /**
      * 验证验证码是否正确
      * @access public
-     * @param String $code 用户验证码
-     * @param String $id   验证码标识
-     * @return bool 用户验证码是否正确
+     * @param string $code 用户验证码
+     * @param string $id   验证码标识
+     * @return boolean
      */
-    public function check(String $code, String $id = ''): Bool
+    public function check(string $code, string $id = ''): bool
     {
         $key    = $this->authCode($this->secretKey) . $id;
         $secode = $this->useRedis ? $this->redis_utils::hgetall(RedisEnum::CAPTCHA_FOLDER . $key) : Session::get($key, '');
@@ -104,11 +104,11 @@ class Main
     /**
      * 保存验证码的值
      * @access private
-     * @param String $id
-     * @param Array $code
-     * @return Void
+     * @param string $id
+     * @param array $code
+     * @return void
      */
-    private function saveCode(String $id, array $code): Void
+    private function saveCode(string $id, array $code): void
     {
         // 验证码校验key
         $key    = $this->authCode($this->secretKey);
@@ -135,9 +135,9 @@ class Main
     /**
      * 图片(常用图片格式)转 Base64 字符串
      * @access private
-     * @return String
+     * @return string
      */
-    private function base64PicString(): String
+    private function base64Picstring(): string
     {
         $base64HeadStr = '';
         // 保存输出至内部缓存区
@@ -180,10 +180,10 @@ class Main
      * 生成 Base64 验证码字符串，并把验证码的值保存到 session 中
      * 验证码保存到 session 的格式为：array('verify_code' => '验证码值', 'verify_time' => '验证码创建时间')
      * @access public
-     * @param String $id 要生成验证码的标识
-     * @return String Base64 字符串
+     * @param string $id 要生成验证码的标识
+     * @return string Base64 字符串
      */
-    public function build(String $id = ''): String
+    public function build(string $id = ''): string
     {
         // 图片宽(px)
         $this->picW || $this->picW = $this->length * $this->fontSize * 1.5 + $this->length * $this->fontSize / 2;
@@ -240,7 +240,7 @@ class Main
         $this->saveCode($id, $code);
 
         // Base64 字符串
-        return $this->base64PicString();
+        return $this->base64Picstring();
     }
 
     /**
@@ -252,7 +252,7 @@ class Main
      *    φ：决定波形与X轴位置关系或横向移动距离（左加右减）
      *    ω：决定周期（最小正周期T=2π/∣ω∣）
      * @access private
-     * @return Void
+     * @return void
      */
     private function writeCurve(): void
     {
@@ -304,7 +304,7 @@ class Main
     /**
      * 画杂点，往图片上写不同颜色的字母或数字
      * @access private
-     * @return Void
+     * @return void
      */
     private function writeNoise(): void
     {
@@ -322,7 +322,7 @@ class Main
      * 绘制背景图片
      * 注：如果验证码输出图片比较大，将占用比较多的系统资源
      * @access private
-     * @return Void
+     * @return void
      */
     private function background(): void
     {
@@ -350,10 +350,10 @@ class Main
     /**
      * 加密验证码
      * @access private
-     * @param String $str
-     * @return String
+     * @param string $str
+     * @return string
      */
-    private function authCode(String $str): string
+    private function authCode(string $str): string
     {
         $key = substr(md5($this->secretKey), 5, 8);
         $str = substr(md5($str), 8, 10);
@@ -362,21 +362,21 @@ class Main
 
     /**
      * @access public
-     * @param  String $name 配置名称
-     * @return Mixed  配置值
+     * @param  string $name 配置名称
+     * @return mixed  配置值
      */
-    public function __get(String $name)
+    public function __get(string $name)
     {
         return $this->config[$name];
     }
 
     /**
      * @access public
-     * @param  String $name  配置名称
-     * @param  Mixed $value 配置值
-     * @return Void
+     * @param  string $name  配置名称
+     * @param  mixed  $value 配置值
+     * @return void
      */
-    public function __set(String $name, $value): void
+    public function __set(string $name, $value): void
     {
         if (isset($this->config[$name])) {
             $this->config[$name] = $value;
@@ -385,10 +385,10 @@ class Main
 
     /**
      * @access public
-     * @param  String $name 配置名称
-     * @return Bool
+     * @param  string $name 配置名称
+     * @return boolean
      */
-    public function __isset(String $name): Bool
+    public function __isset(string $name): bool
     {
         return isset($this->config[$name]);
     }

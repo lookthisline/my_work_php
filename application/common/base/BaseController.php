@@ -4,9 +4,10 @@ namespace app\common\base;
 
 use app\common\enum\Redis as RedisEnum;
 use app\common\expand\UtilsFactory;
+use think\Controller;
 use think\Db;
 
-class BaseController extends \think\Controller
+class BaseController extends Controller
 {
     // jwt
     private static string $token;
@@ -47,12 +48,12 @@ class BaseController extends \think\Controller
     /**
      * 加载模块验证器类文件验证提交参数
      * @access private
-     * @return Bool|String
+     * @return bool|string
      */
     private static function checkActionParam()
     {
         // 校验结果
-        $validate_result   = true;
+        $validate_result = true;
         // 获取所有客户端传过来的数据
         $client_param_data = request()->param(true);
         // 获取用户端在请求头携带的用户 token
@@ -97,10 +98,10 @@ class BaseController extends \think\Controller
     /**
      * JWT 信息校验
      * @access private
-     * @param String $token 在验证器中定义 token 必须传输
-     * @return \think\response\Json|Void
+     * @param string $token 在验证器中定义 token 必须传输
+     * @return \think\response\Json|void
      */
-    private function verifyToken(String $token)
+    private function verifyToken(string $token)
     {
         // 解析 token
         $token_data = $this->jwt_utils->verifyToken($token);
@@ -163,30 +164,30 @@ class BaseController extends \think\Controller
     /**
      * 生成并保存 jwt 信息
      * @access protected
-     * @param Array $payload
-     * @param Array $user_data
-     * @return String
+     * @param array   $payload
+     * @param array   $user_data
+     * @return string
      */
     final protected function buildToken(array $payload = [], array $user_data = []): string
     {
         $token_str      = $this->jwt_utils->buildToken($payload);                            // 生成 token 字符串
         $pipeline       = $this->redis_utils->pipeline();                                    // redis pipeline（管道）将多次命令一次发送
-        $reids_jwt_key  = RedisEnum::JWT_FOLDER . (string)$this->jwt_utils->jwt_hash_key;
-        $reids_user_key = RedisEnum::USER_FOLDER . (string)$this->jwt_utils->auth_hash_key;
+        $redis_jwt_key  = RedisEnum::JWT_FOLDER . (string)$this->jwt_utils->jwt_hash_key;
+        $redis_user_key = RedisEnum::USER_FOLDER . (string)$this->jwt_utils->auth_hash_key;
         // 存入 redis；jwt 部分
-        $pipeline->hset($reids_jwt_key, (string)$this->jwt_utils->jti, $token_str);
+        $pipeline->hset($redis_jwt_key, (string)$this->jwt_utils->jti, $token_str);
         // 存入 redis；用户信息 部分
         if (!empty($user_data)) {
             foreach ($user_data as $k => $v) {
-                $pipeline->hset($reids_user_key, (string)$k, (string)$v);
+                $pipeline->hset($redis_user_key, (string)$k, (string)$v);
             }
         } else {
-            $pipeline->hset($reids_user_key, '', '');
+            $pipeline->hset($redis_user_key, '', '');
         }
         $pipeline->exec();
         // 刷新过期时间（确保在覆盖的是旧数据时能再用）
-        $this->redis_utils->RefreshExpireTime($reids_jwt_key, RedisEnum::JWT_LIFECYCLE);
-        $this->redis_utils->RefreshExpireTime($reids_user_key, RedisEnum::JWT_LIFECYCLE);
+        $this->redis_utils->RefreshExpireTime($redis_jwt_key, RedisEnum::JWT_LIFECYCLE);
+        $this->redis_utils->RefreshExpireTime($redis_user_key, RedisEnum::JWT_LIFECYCLE);
 
         return $token_str;
     }
@@ -194,7 +195,7 @@ class BaseController extends \think\Controller
     /**
      * 查询用户有效性
      * @access public
-     * @param Integer $user_id
+     * @param integer $user_id
      * @return \think\response\Json|Void
      */
     final protected function verifyUser(int $user_id)
@@ -213,11 +214,11 @@ class BaseController extends \think\Controller
     /**
      * 验证当前用户是否有权限操作
      * @access public
-     * @param Integer $lv 用户级别(当前系统中 1 超管, 2 普管, 3 用户)
-     * @return Boolean
+     * @param integer $lv 用户级别(当前系统中 1 超管, 2 普管, 3 用户)
+     * @return boolean
      */
     final protected function decidePrivilege(int $lv): bool
     {
-        return empty($this->user) or (!isset($this->user['user_level']) ? false : (int)$this->user['user_level'] > $lv);
+        return empty($this->user) || (!isset($this->user['user_level']) ? false : (int)$this->user['user_level'] > $lv);
     }
 }

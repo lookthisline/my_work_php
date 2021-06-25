@@ -1,5 +1,7 @@
 <?php
 
+namespace app\common\expand\FileUtils;
+
 /**
  * Zip 文件包工具
  */
@@ -12,7 +14,7 @@ class Zip
 
     public function __construct()
     {
-        $this->zip = new ZipArchive();
+        $this->zip = new \ZipArchive();
     }
 
     /**
@@ -51,7 +53,7 @@ class Zip
      * @param boolean $require_folder
      * @return boolean 压缩包生成成功返回true 否则返回 false
      */
-    public function compress($zip, $folder, $ignored = null, bool $require_folder = true)
+    public function compress(string $zip, string $folder, $ignored = null, bool $require_folder = true)
     {
         $this->require_folder = $require_folder;
 
@@ -62,8 +64,8 @@ class Zip
         if (!is_dir($path['dirname'])) {
             mkdir($path['dirname'], 754, true);
         }
-        $this->ignored_names = is_array($ignored) ? $ignored : ($ignored ? array($ignored) : array());
-        if ($this->zip->open($zip, ZIPARCHIVE::CREATE) !== true) {
+        $this->ignored_names = is_array($ignored) ? $ignored : ($ignored ? array($ignored) : []);
+        if ($this->zip->open($zip, \ZIPARCHIVE::CREATE) !== true) {
             throw new \Exception("cannot open <$zip>\n");
         }
         $folder = substr($folder, -1) == '/' ? substr($folder, 0, strlen($folder) - 1) : $folder;
@@ -88,7 +90,7 @@ class Zip
         $full_path = $this->root . $parent . $folder;
         $zip_path  = $parent . $folder;
         !$this->require_folder ?: $this->zip->addEmptyDir($zip_path);
-        $dir = new DirectoryIterator($full_path);
+        $dir = new \DirectoryIterator($full_path);
         foreach ($dir as $file) {
             if (!$file->isDot()) {
                 $filename = $file->getFilename();
@@ -115,7 +117,7 @@ class Zip
     {
         $file_dir_list = array();
         $file_list     = array();
-        if ($this->zip->open($zip) == true) {
+        if ($this->zip->open($zip)) {
             for ($i = 0; $i < $this->zip->numFiles; $i++) {
                 $numfiles = $this->zip->getNameIndex($i);
                 if (preg_match('/\/$/i', $numfiles)) {
@@ -147,6 +149,3 @@ class Zip
         return false;
     }
 }
-
-// $zip = new Zip();
-// var_dump($zip->zip('./runtime/tmp/zip/'.date('YmdHis'), 'D:\MyWork\PHP\work\application\common\expand\FileUtils', null, false));

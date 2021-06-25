@@ -19,9 +19,9 @@ final class JwtUtils
 
     /**
      * @access private
-     * @return Void
+     * @return void
      */
-    private static function initData(): Void
+    private static function initData(): void
     {
         // 初始化数据
         self::$payload = [
@@ -48,10 +48,10 @@ final class JwtUtils
     /**
      * 生成 Json Web Token
      * @access public
-     * @param Array $payload jwt 载荷
-     * @return String header + payload + signature
+     * @param array   $payload jwt 载荷
+     * @return string header + payload + signature
      */
-    public static function buildToken(array $payload = []): String
+    public static function buildToken(array $payload = []): string
     {
         self::initData();
         if (!empty($payload) && is_array($payload)) {
@@ -65,8 +65,8 @@ final class JwtUtils
     /**
      * 校验 Json Web Token 默认验证exp,nbf,iat时间
      * @access public
-     * @param String $token
-     * @return Mixed
+     * @param string $token
+     * @return mixed
      */
     public static function verifyToken(string $token)
     {
@@ -113,20 +113,20 @@ final class JwtUtils
     /**
      * 签名 Json Web Token
      * @access private
-     * @param String $input 为base64UrlEncode(header).".".base64UrlEncode(payload)
-     * @param String $key
-     * @param String $alg 算法方式
-     * @return String
+     * @param string $input 为base64UrlEncode(header).".".base64UrlEncode(payload)
+     * @param string $key
+     * @param string $alg 算法方式
+     * @return string
      */
-    private static function signature(string $input, string $key, string $algo = 'sha256'): String
+    private static function signature(string $input, string $key, string $algo = 'sha256'): string
     {
         return base64UrlEncode(hash_hmac($algo, $input, $key, true));
     }
 
     /**
      * @access public
-     * @param String $name
-     * @return Mixed
+     * @param string $name
+     * @return mixed
      */
     public function __get($name)
     {

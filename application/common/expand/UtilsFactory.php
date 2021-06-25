@@ -6,13 +6,15 @@ use app\common\expand\JwtUtils;
 use app\common\expand\RedisUtils;
 use app\common\expand\Captcha\Main as CaptchaUtils;
 
-// Utils 简单工厂
+/**
+ * Utils 简单工厂
+ */
 final class UtilsFactory
 {
-    private static object $redis;
-    private static object $jwt;
-    private static object $captcha;
-    private static object $file;
+    private static object $_redis;
+    private static object $_jwt;
+    private static object $_captcha;
+    private static object $_file;
     // private static object $instance;
 
     private function __construct()
@@ -22,11 +24,11 @@ final class UtilsFactory
 
     // /**
     //  * 单例无法维持，失败
-    //  * @param String $name 实例名
-    //  * @param Array $config 配置参数
+    //  * @param string $name 实例名
+    //  * @param array $config 配置参数
     //  * @return $instance
     //  */
-    // public final static function getInstance(String $instance_name, array $config = [])
+    // public final static function getInstance(string $instance_name, array $config = [])
     // {
     //     // 类名
     //     $instance_full_name = __NAMESPACE__ . '\\' . $instance_name;
@@ -45,34 +47,34 @@ final class UtilsFactory
 
     final public static function redis(array $config = []): RedisUtils
     {
-        if (!isset(self::$redis) || !(self::$redis instanceof RedisUtils)) {
-            self::$redis = RedisUtils::getInstance($config);
+        if (!isset(self::$_redis) || !(self::$_redis instanceof RedisUtils)) {
+            self::$_redis = RedisUtils::getInstance($config);
         }
-        return self::$redis;
+        return self::$_redis;
     }
 
     final public static function jwt(): JwtUtils
     {
-        if (!isset(self::$jwt) || !(self::$jwt instanceof JwtUtils)) {
-            self::$jwt = new JwtUtils();
+        if (!isset(self::$_jwt) || !(self::$_jwt instanceof JwtUtils)) {
+            self::$_jwt = new JwtUtils();
         }
-        return self::$jwt;
+        return self::$_jwt;
     }
 
     final public static function captcha(array $config = []): CaptchaUtils
     {
-        if (!isset(self::$captcha) || !(self::$captcha instanceof CaptchaUtils)) {
-            self::$captcha = new CaptchaUtils($config);
+        if (!isset(self::$_captcha) || !(self::$_captcha instanceof CaptchaUtils)) {
+            self::$_captcha = new CaptchaUtils($config);
         }
-        return self::$captcha;
+        return self::$_captcha;
     }
 
     final public static function file(): FileUtils
     {
-        if (!isset(self::$file) || !(self::$file instanceof FileUtils)) {
-            self::$file = new FileUtils();
+        if (!isset(self::$_file) || !(self::$_file instanceof FileUtils)) {
+            self::$_file = new FileUtils();
         }
-        return self::$file;
+        return self::$_file;
     }
 
     private function __clone()

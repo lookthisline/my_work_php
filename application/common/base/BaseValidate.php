@@ -21,7 +21,7 @@ class BaseValidate extends Validate
     //     return isset($this->excludeActionScene) ? $this->excludeActionScene : [];
     // }
 
-    // public function __get(String $variable_name)
+    // public function __get(string $variable_name)
     // {
     //     return $this->$variable_name;
     // }
@@ -33,8 +33,8 @@ class BaseValidate extends Validate
 
     /**
      * 获取场景内验证字段
-     * @param String $scene
-     * @return Array
+     * @param string $scene
+     * @return array
      */
     public function getSceneRule(string $scene): array
     {

@@ -18,18 +18,18 @@ class User extends Model
     /**
      * 账户创建时间(create_time) 获取器
      * @access public
-     * @param String $value
-     * @return String
+     * @param string $value
+     * @return string
      */
-    public function getCreateTimeAttr(String $value): string
+    public function getCreateTimeAttr(string $value): string
     {
         return @date('Y-m-d H:i:s', $value) ? date('Y-m-d H:i:s', $value) : '';
     }
 
     /**
      * 注册
-     * @param Array $param_data
-     * @return Boolean|Integer
+     * @param array $param_data
+     * @return boolean|integer
      */
     public function SignUp(array $param_data)
     {
@@ -49,7 +49,7 @@ class User extends Model
 
     /**
      * 登录
-     * @param Array $param_data
+     * @param array $param_data
      */
     public function Login(array $param_data)
     {
@@ -73,7 +73,7 @@ class User extends Model
                     break;
                 default:
                     $this->user['status'] = 1;
-                    $this->user['data']   = $result->toArray();
+                    $this->user['data']   = $result->toarray();
                     break;
             }
         } catch (\Exception $e) {
@@ -86,7 +86,7 @@ class User extends Model
     /**
      * 获取用户列表(普通用户，待审核中)
      * @access public
-     * @return Array
+     * @return array
      */
     public function getList()
     {
@@ -107,8 +107,8 @@ class User extends Model
     /**
      * 获取用户详情(普通用户)用于展示
      * @access public
-     * @param Integer $id
-     * @return Array
+     * @param integer $id
+     * @return array
      */
     public function getUserDetails(int $id)
     {
@@ -123,8 +123,8 @@ class User extends Model
 
     /**
      * 修改用户
-     * @param Array $param_data
-     * @return Boolean
+     * @param array $param_data
+     * @return boolean
      */
     public function modifyUser(array $param_data): bool
     {
@@ -150,8 +150,8 @@ class User extends Model
 
     /**
      * 审核用户
-     * @param Integer $id
-     * @return Boolean
+     * @param integer $id
+     * @return boolean
      */
     public function auditUsers(int $id): bool
     {
@@ -171,8 +171,8 @@ class User extends Model
     /**
      * 删除用户
      * @access public
-     * @param Integer $id
-     * @return Boolean
+     * @param integer $id
+     * @return boolean
      */
     public function deleteUser(int $id): bool
     {

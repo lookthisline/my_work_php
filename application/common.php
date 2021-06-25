@@ -2,20 +2,20 @@
 
 /**
  * base64_url 编码
- * @param String $input
- * @return String
+ * @param string $input
+ * @return string
  */
-function base64UrlEncode(String $input): String
+function base64UrlEncode(string $input): string
 {
     return str_replace('=', '', strtr(base64_encode($input), '+/', '-_'));
 }
 
 /**
  * base64_url 解码
- * @param String $input
- * @return String
+ * @param string $input
+ * @return string
  */
-function base64UrlDecode(String $input): String
+function base64UrlDecode(string $input): string
 {
     $remainder = strlen($input) % 4;
     if ($remainder) {
@@ -27,8 +27,8 @@ function base64UrlDecode(String $input): String
 
 /**
  * 去除返回数据的 key 中的括号
- * @param Array $data
- * @return Void
+ * @param array $data
+ * @return void
  */
 function tripTag(array &$data): void
 {
@@ -49,11 +49,11 @@ function tripTag(array &$data): void
 
 /**
  * 响应请求
- * @param Mixed $data
- * @param String $message
- * @param Boolean $status 当前响应为错误类型还是成功类型
- * @param Integer $http_code Http 响应状态码
- * @param Array $header
+ * @param mixed   $data
+ * @param string  $message
+ * @param boolean $status    当前响应为错误类型还是成功类型
+ * @param integer $http_code Http 响应状态码
+ * @param array   $header
  */
 function clientResponse($data = [], string $message = 'success', bool $status = true, int $http_code = 200, array $header = [])
 {
@@ -95,22 +95,22 @@ function clientResponse($data = [], string $message = 'success', bool $status = 
 /**
  * 简单无限极分类获取分类数
  */
- function getTree($array, $pid = 0, $level = 0)
- {
-     //声明静态数组,避免递归调用时,多次声明导致数组覆盖
-     static $list = [];
-     foreach ($array as $key => $value) {
-         //第一次遍历,找到父节点为根节点的节点 也就是pid=0的节点
-         if ($value['pid'] == $pid) {
-             //父节点为根节点的节点,级别为0，也就是第一级
-             $value['level'] = $level;
-             //把数组放到list中
-             $list[] = $value;
-             //把这个节点从数组中移除,减少后续递归消耗
-             unset($array[$key]);
-             //开始递归,查找父ID为该节点ID的节点,级别则为原级别+1
-             getTree($array, $value['id'], $level + 1);
-         }
-     }
-     return $list;
- }
+function getTree(array $array, int $pid = 0, int $level = 0)
+{
+    //声明静态数组,避免递归调用时,多次声明导致数组覆盖
+    static $list = [];
+    foreach ($array as $key => $value) {
+        //第一次遍历,找到父节点为根节点的节点 也就是pid=0的节点
+        if ($value['pid'] == $pid) {
+            //父节点为根节点的节点,级别为0，也就是第一级
+            $value['level'] = $level;
+            //把数组放到list中
+            $list[] = $value;
+            //把这个节点从数组中移除,减少后续递归消耗
+            unset($array[$key]);
+            //开始递归,查找父ID为该节点ID的节点,级别则为原级别+1
+            getTree($array, $value['id'], $level + 1);
+        }
+    }
+    return $list;
+}

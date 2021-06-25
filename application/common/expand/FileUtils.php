@@ -14,8 +14,8 @@ final class FileUtils
 
     /**
      * 上传文件（移动文件，返回文件存储地址）
-     * @param FILE $file
-     * @return String|Boolean
+     * @param File $file
+     * @return string|boolean
      */
     public function upload(File $file)
     {
@@ -32,8 +32,8 @@ final class FileUtils
 
     /**
      * 删除文件（取得文件路径，删除）
-     * @param String $file_path
-     * @return Boolean
+     * @param string $file_path
+     * @return boolean
      */
     public static function delete(string $file_path): bool
     {
